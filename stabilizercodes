@@ -1,1 +1,205 @@
+from qiskit import QuantumCircuit
+from qiskit.quantum_info import Pauli
+from qiskit.circuit.library import ZGate, XGate, CZGate
+import numpy as np
+import matplotlib as mpl
+import matplotlib.pyplot as plt
 
+def stabiliserZ1Z2():
+    """
+    Create the quantum circuit to measure the Z1Z2 syndrome.
+    The Z1Z2 stabiliser measures two logic qubits into 1 ancilla qubit.
+
+    The operator Z1Z2 stabilises linear combinations of 00 and 11.
+
+    This is the circuit:
+        CNOT(control=first logical qubit, target=ancilla)
+        CNOT(control=second logical qubit, target=ancilla)
+        Measure(ancilla in Z basis)
+    
+    Theoretically this is what happens:
+        This circuit applies the following:
+            00|0 -first CNOT-> 00|0 -second CNOT-> 00|0 : the ancilla = 0
+            01|0 -first CNOT-> 01|0 -second CNOT-> 01|1 : the ancilla = 1
+            10|0 -first CNOT-> 10|1 -second CNOT-> 10|1 : the ancilla = 1
+            11|0 -first CNOT-> 11|1 -second CNOT-> 11|0 : the ancilla = 0
+        Measure the ancilla in the Z basis i.e. project onto {0,1} basis.
+    
+    Syndrome behavior:
+        - Ancilla collapses to 0 if the qubits were |00> or |11> (syndrome = 0)
+        - Ancilla collapses to 1 if the qubits were |01> or |10> (syndrome = 1)
+    """
+    qc = QuantumCircuit(3,1)
+    qc.cx(0,2)
+    qc.cx(1,2)
+    qc.measure(2,0)
+    return qc
+
+import numpy as np
+
+class Stabiliser:
+    """
+    Represents a stabiliser (Pauli) operator as binary strings in X and Z.
+
+    A stabiliser is a tensor product of Pauli operators over n qubits.
+    Every Pauli matrix is a product of X, Y, Z with a phase 1,-1,i,-i.
+    Notes:
+        - Y=iXZ so we only need to track the X, Z and phase.
+        - X and Z anticommute so in the tensor product we assume each entry is of the form X^aZ^b.
+        - X and Z have order 2 so a and b are elements in {0,1}.
+    Thus we encode the tensor product as:
+        - a phase
+        - a binary exponent vector for Z
+        - a binary exponent vector for X
+
+    Attributes:
+        phase (complex): The global phase of the stabiliser. Must be one of {1, -1, i, -i}.
+        z_vec (np.ndarray): Binary exponent vector for Z.
+        x_vec (np.ndarray): Binary exponent vector for X.
+    """
+
+    def __init__(self,
+                 phase: complex = 1,
+                 z_vec: np.ndarray = np.array([], dtype=bool),
+                 x_vec: np.ndarray = np.array([], dtype=bool)):
+        # Check that phase is valid
+        if phase not in [1, -1, 1j, -1j]:
+            raise ValueError("Phase must be one of {1, -1, i, -i}.")
+        if z_vec.size == 0 and x_vec.size == 0:
+            raise ValueError("Stabiliser must have some entries.")
+        if z_vec.size == 0:
+            z_vec = np.zeros_like(x_vec, dtype=bool)
+        if x_vec.size == 0:
+            x_vec = np.zeros_like(z_vec, dtype=bool)
+        if len(z_vec) != len(x_vec):
+            raise ValueError("Length of z exponent vector and x exponent vector should be the same.")
+        
+        self.phase = phase
+        self.z_vec = z_vec
+        self.x_vec = x_vec
+        self.num_qubits = len(z_vec)
+
+    def multiply_stabilisers(self, stabiliser: 'Stabiliser') -> 'Stabiliser':
+        """
+        Multiply two stabilisers using exponent vectors.
+
+        Args:
+            stabiliser (Stabiliser): Another stabiliser to multiply with self.
+
+        Returns:
+            Stabiliser: New stabiliser representing the product.
+
+        Notes:
+            - Phase accumulates according to the number of anti-commuting (X,Z) pairs.
+        """
+        # Phase contribution from anti-commuting X/Z pairs
+        p_power = self.x_vec.dot(stabiliser.z_vec) % 2
+        new_phase = self.phase * stabiliser.phase * (-1) ** p_power
+
+        # Combine X and Z vectors elementwise using XOR
+        new_z = np.bitwise_xor(self.z_vec, stabiliser.z_vec)
+        new_x = np.bitwise_xor(self.x_vec, stabiliser.x_vec)
+
+        return Stabiliser(new_phase, new_z, new_x)
+
+    def square_stabiliser(self) -> 'Stabiliser':
+        """
+        Return the square of the stabiliser.
+
+        Returns:
+            Stabiliser: The stabiliser multiplied by itself.
+        
+        Notes:
+            - For a valid stabiliser, the square should have phase = 1.
+        """
+        return self.multiply_stabilisers(self)
+    
+    def is_valid(self):
+        """
+        Checks if the stabiliser is valid wrt squaring to id.
+
+        Returns:
+            Boolean: True if the stabiliser squares to id. False otherwise.
+        """
+        return 1 == self.square_stabiliser().phase
+
+    def measurement_circuit(self, apply_h_start: bool = True, apply_h_end: bool = True, apply_measure: bool = True) -> QuantumCircuit:
+        """
+        Create quantum circuit to measure the syndrome of this stabiliser.
+
+        The circuit uses an ancilla qubit to measure the stabiliser operator.
+
+        Args:
+            apply_h_start (bool, optional): If True, apply a Hadamard gate to the ancilla at the start.
+            apply_h_end (bool, optional): If True, apply a Hadamard gate to the ancilla at the end.
+            apply_measure (bool, optional): If True, measure the ancilla qubit into classical bit 0.
+
+        Returns:
+            QuantumCircuit: Quantum circuit that measures the stabiliser's syndrome.
+        """
+        n = self.num_qubits
+        qc = QuantumCircuit(n + 1, 1)  # n physical qubits + 1 ancilla
+        ancilla = n
+        if apply_h_start:
+            qc.h(ancilla)
+        for idx in range(n):
+            if self.z_vec[idx]:
+                qc.append(CZGate(), [ancilla,idx])
+                # TODO: why is this not rendering correctly?
+            if self.x_vec[idx]:
+                qc.cx(ancilla,idx)
+        if apply_h_end:
+            qc.h(ancilla)
+        if apply_measure:
+            qc.measure(ancilla, 0)
+        return qc
+
+
+
+
+class StabiliserCode:
+    """
+    Represents a stabiliser code defined by a set of Pauli operators.
+
+    Attributes:
+        num_logical_qubits (int): Number of qubits that hold the logical information.
+        num_physical_qubits (int): Number of qubits encoding the logical qubits.
+        stabilisers (List[Pauli]): List of Pauli operators defining the stabiliser group.
+            Each Pauli represents a tensor product over all physical qubits.
+            Example: 'XZ' = X tensored with Z.
+    """
+    def __init__(self, 
+                 num_physical_qubits: int,
+                 stabilisers: list[Pauli]):
+        if num_physical_qubits < 0:
+            raise ValueError("Number of physical qubits must be non-negative.")
+        if not stabilisers:
+            raise ValueError("Must provide at least one stabiliser.")
+        # check the stabilisers are the right length and square to id not -id
+        for stabiliser in stabilisers:
+            if num_physical_qubits != stabiliser.num_qubits:
+                raise ValueError(f"Each stabiliser must have {num_physical_qubits} Pauli matrices.")
+            if not stabiliser.compose(stabiliser).equiv(Pauli("I"*num_physical_qubits)):
+                raise ValueError(f"{stabiliser} does not square to identity.")        
+
+        # take stabiliser of space of n physical qubits wrt r stabilisers
+        # stabiliser is of dimension 2^{n-r}
+        self.num_logical_qubits = num_physical_qubits - len(stabilisers)
+        self.num_physical_qubits = num_physical_qubits
+        self.stabilisers = stabilisers
+        self.rate = self.num_logical_qubits / self.num_physical_qubits
+
+
+
+
+
+if __name__ == "__main__":
+    print(Pauli("XZ").compose(Pauli("ZZ")))
+    print(Pauli("XZIX").tensor(Pauli("X")).num_qubits)
+    print(Pauli("XZ"))
+    
+    
+    stabz1z2 = Stabiliser(z_vec = np.array([0,1]), x_vec=np.array([1,0]))
+    qc = stabz1z2.measurement_circuit(True, True, True)
+    qc.draw('mpl')
+    plt.show()
