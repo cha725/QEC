@@ -201,22 +201,20 @@ class StabiliserCode:
         self.num_logical_qubits = self.num_physical_qubits - self.stab_generators.shape[0]
         self.rate = self.num_logical_qubits / self.num_physical_qubits
         
-        if not self.all_commute():
-            s,t = self.non_commuting()
-            raise ValueError(f"Invalid list of stabilisers. {s.vec} and {t.vec} do not commute.")
+        _, pair = self.all_commute()
+        if not pair is None:
+            raise ValueError(f"Invalid list of stabilisers. {pair[0].vec} and {pair[1].vec} do not commute.")
 
-    def non_commuting(self):
+    def all_commute(self):
         """
         Check the stabilisers in the list commute with one another.
         """
         for idx, s in enumerate(self.stabilisers):
             for t in self.stabilisers[idx+1:]:
                 if not s.commutes_with(t):
-                    return s,t
+                    return False, (s,t)
+        return True, None
                 
-    def all_commute(self):
-        return self.non_commuting() == None
-
     def minimal_generating_set(self, error=1e-10):
         # the stabilisers have order 2 and commute
         # therefore, the exponent vectors of the stabilisers form a vector space over F2
