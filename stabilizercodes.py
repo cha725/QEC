@@ -62,15 +62,14 @@ class Stabiliser:
                  z_vec: list[int] = [],
                  x_vec: list[int] = [],
                  phase: complex = 1):
-        # Check that phase is valid
         if phase not in [complex(1), complex(-1), complex(0,1), complex(0,-1)]:
             raise ValueError("Phase must be one of {1, -1, i, -i}.")
         if len(z_vec) == 0 and len(x_vec) == 0:
             raise ValueError("Stabiliser must have some entries.")
         if len(z_vec) == 0:
-            z_vec = [0*len(x_vec)]
+            z_vec = [0]*len(x_vec)
         if len(x_vec) == 0:
-            x_vec = [0*len(z_vec)]
+            x_vec = [0]*len(z_vec)
         if len(z_vec) != len(x_vec):
             raise ValueError("Length of z exponent vector and x exponent vector should be the same.")
         
@@ -166,6 +165,29 @@ class Stabiliser:
         if apply_measure:
             qc.measure(ancilla, 0)
         return qc
+    
+    def __eq__(self, other : Stabiliser):
+        """
+        Check if two stabilisers are the same.
+        """
+        return (self.z_vec == other.z_vec and self.x_vec == other.x_vec and self.phase == other.phase)
+
+    def __repr__(self):
+        list = []
+        for idx in range(self.num_qubits):
+            if self.z_vec[idx] == 1 and self.x_vec[idx] == 1:
+                list.append("ZX")
+            if self.z_vec[idx] == 1 and self.x_vec[idx] == 0:
+                list.append("Z")
+            if self.z_vec[idx] == 0 and self.x_vec[idx] == 1:
+                list.append("X")
+            if self.z_vec[idx] == 0 and self.x_vec[idx] == 0:
+                list.append("I")
+        if self.phase == 1:
+            return f"Stabiliser(Tensor={list})"
+        else:
+            return f"Stabiliser(Phase={self.phase}, Tensor={list})"
+
 
 
 
@@ -185,49 +207,67 @@ class StabiliserCode:
                  stabilisers: list[Stabiliser]):
         if not stabilisers:
             raise ValueError("Must provide at least one stabiliser.")
-        # check the stabilisers are the same length and square to id not -id
+        # check the stabilisers are the same length, -id is not in the list and square to id not -id
         stab_len = stabilisers[0].num_qubits
         for stabiliser in stabilisers:
             if stab_len != stabiliser.num_qubits:
                 raise ValueError(f"Each stabiliser must have {stab_len} z and x vectors.")
+            if stabiliser == Stabiliser(z_vec=[0]*stab_len,x_vec=[0]*stab_len,phase=-1):
+                raise ValueError(f"-I is not allowed in list of stabilisers.")
             if not stabiliser.is_valid():
-                raise ValueError(f"{stabiliser} does not square to the identity.")       
+                raise ValueError(f"{stabiliser} does not square to the identity I.")       
 
         # take stabiliser of space of n physical qubits wrt r stabilisers
         # stabiliser is of dimension 2^{n-r}
         self.num_physical_qubits = stab_len
         self.stabilisers = stabilisers
         self.stab_generators = self.minimal_generating_set()
-        self.num_logical_qubits = self.num_physical_qubits - self.stab_generators.shape[0]
+        self.num_logical_qubits = self.num_physical_qubits - self.stab_generators[0].num_qubits
         self.rate = self.num_logical_qubits / self.num_physical_qubits
         
-        _, pair = self.all_commute()
-        if not pair is None:
-            raise ValueError(f"Invalid list of stabilisers. {pair[0].vec} and {pair[1].vec} do not commute.")
+        non_commuting_pairs = self.non_commuting_pairs()
+        self.all_commute = non_commuting_pairs == []
+        if not self.all_commute:
+            raise ValueError(f"Invalid list of stabilisers. {non_commuting_pairs} do not commute.")
 
-    def all_commute(self):
+    def non_commuting_pairs(self):
         """
         Check the stabilisers in the list commute with one another.
         """
+        non_commuting = []
         for idx, s in enumerate(self.stabilisers):
             for t in self.stabilisers[idx+1:]:
                 if not s.commutes_with(t):
-                    return False, (s,t)
-        return True, None
+                    non_commuting.append((s,t))
+        return non_commuting
                 
     def minimal_generating_set(self, error=1e-10):
         # the stabilisers have order 2 and commute
         # therefore, the exponent vectors of the stabilisers form a vector space over F2
         # want to check we have a minimal set of stabiliser generators i.e. find a basis
-        M = np.array([stabiliser.vec for stabiliser in self.stabilisers]).T
+        M = np.array([stabiliser.vec for stabiliser in self.stabilisers],dtype=bool).T
+        print(M)
         R = np.linalg.qr(M)[1]
+        print(R)
         independent_indices = np.where(np.abs(np.diag(R)) > error)[0]
-        basis = M[:, independent_indices]
-        return basis.T
-    
-    
-        
+        basis = M[:, independent_indices].T
+        stab_basis = []
+        l = basis[0].size
+        for b in basis:
+            bz = b[:int(l*0.5)]
+            bx = b[int(l*0.5):]
+            stab_basis.append(Stabiliser(bz,bx))          
+        return stab_basis
 
+    def print_stabilisers(self):
+        print("Stabilisers:")
+        for idx, stab in enumerate(self.stabilisers):
+            print(f"  S{idx}={stab}")
+    
+    def print_generating_set(self):
+        print("Minimal generating set:")
+        for idx, stab in enumerate(self.minimal_generating_set()):
+            print(f" B{idx}={stab}")
 
 
 
@@ -253,20 +293,34 @@ if __name__ == "__main__":
 
     print("\n=== Stabiliser Code Basis Exploration ===")
     stabilisers = [
-        Stabiliser([0,0,0],[1,0,0]),
+        Stabiliser([0,0,0],[0,0,0]),
         Stabiliser([0,1,1],[0,0,0]),
-        Stabiliser([0,0,1],[0,0,0]),
-        Stabiliser([0,1,0],[0,0,0])
+        Stabiliser([1,0,1],[0,0,0]),
+        Stabiliser([1,1,0],[0,0,0])
     ]
     print(stabilisers[0].commutes_with(stabilisers[2]))
     stabcode = StabiliserCode(stabilisers)
-    print("All commute?", stabcode.all_commute())
+    print("All commute?", stabcode.all_commute)
     basis = stabcode.minimal_generating_set()
-    print("Original stabilisers (z_vec, x_vec):")
-    for s in stabilisers: print(s.z_vec, s.x_vec)
-    print("Minimal generating set (basis):")
-    for b in basis: print(b)
+    print(stabcode.print_stabilisers())
+    print(stabcode.print_generating_set())
     print("Physical qubits:", stabcode.num_physical_qubits)
     print("Logical qubits:", stabcode.num_logical_qubits)
     print("Code rate:", stabcode.rate)
 
+    print("\n=== Stabiliser Code Basis Exploration 2 ===")
+    stabilisers = [
+        Stabiliser([0,0,0],[1,0,0]),
+        Stabiliser([0,1,1],[0,0,0]),
+        Stabiliser([1,0,1],[0,0,0]),
+        Stabiliser([1,1,0],[0,0,0])
+    ]
+    print(stabilisers)
+    print(stabilisers[0].commutes_with(stabilisers[2]))
+    stabcode = StabiliserCode(stabilisers)
+    print("All commute?", stabcode.all_commute)
+    print(stabcode.print_stabilisers())
+    print(stabcode.print_generating_set())
+    print("Physical qubits:", stabcode.num_physical_qubits)
+    print("Logical qubits:", stabcode.num_logical_qubits)
+    print("Code rate:", stabcode.rate)
