@@ -59,18 +59,18 @@ class Stabiliser:
     """
 
     def __init__(self,
-                 phase: complex = 1,
-                 z_vec: np.ndarray = np.array([], dtype=bool),
-                 x_vec: np.ndarray = np.array([], dtype=bool)):
+                 z_vec: list[int] = [],
+                 x_vec: list[int] = [],
+                 phase: complex = 1):
         # Check that phase is valid
-        if phase not in [1, -1, 1j, -1j]:
+        if phase not in [complex(1), complex(-1), complex(0,1), complex(0,-1)]:
             raise ValueError("Phase must be one of {1, -1, i, -i}.")
-        if z_vec.size == 0 and x_vec.size == 0:
+        if len(z_vec) == 0 and len(x_vec) == 0:
             raise ValueError("Stabiliser must have some entries.")
-        if z_vec.size == 0:
-            z_vec = np.zeros_like(x_vec, dtype=bool)
-        if x_vec.size == 0:
-            x_vec = np.zeros_like(z_vec, dtype=bool)
+        if len(z_vec) == 0:
+            z_vec = [0*len(x_vec)]
+        if len(x_vec) == 0:
+            x_vec = [0*len(z_vec)]
         if len(z_vec) != len(x_vec):
             raise ValueError("Length of z exponent vector and x exponent vector should be the same.")
         
@@ -78,6 +78,7 @@ class Stabiliser:
         self.z_vec = z_vec
         self.x_vec = x_vec
         self.num_qubits = len(z_vec)
+        self.vec = self.z_vec + self.x_vec
 
     def multiply_stabilisers(self, stabiliser: 'Stabiliser') -> 'Stabiliser':
         """
@@ -93,14 +94,14 @@ class Stabiliser:
             - Phase accumulates according to the number of anti-commuting (X,Z) pairs.
         """
         # Phase contribution from anti-commuting X/Z pairs
-        p_power = self.x_vec.dot(stabiliser.z_vec) % 2
+        p_power = sum(x * z for x, z in zip(stabiliser.x_vec, self.z_vec)) % 2
         new_phase = self.phase * stabiliser.phase * (-1) ** p_power
 
         # Combine X and Z vectors elementwise using XOR
-        new_z = np.bitwise_xor(self.z_vec, stabiliser.z_vec)
-        new_x = np.bitwise_xor(self.x_vec, stabiliser.x_vec)
+        new_z = [(z1+z2)%2 for z1, z2 in zip(self.z_vec, stabiliser.z_vec)]
+        new_x = [(x1+x2)%2 for x1, x2 in zip(self.x_vec, stabiliser.x_vec)]
 
-        return Stabiliser(new_phase, new_z, new_x)
+        return Stabiliser(new_z, new_x, new_phase)
 
     def square_stabiliser(self) -> 'Stabiliser':
         """
@@ -122,6 +123,18 @@ class Stabiliser:
             Boolean: True if the stabiliser squares to id. False otherwise.
         """
         return 1 == self.square_stabiliser().phase
+    
+    def commutes_with(self, stabiliser:Stabiliser):
+        """
+        Checks if it commutes with a stabiliser.
+        Z and X anticommute.
+        Only way two ZX stabilisers do not commute is if the phase is changed.
+        Thus, just need to check there are an even number of (x,z) pairs.
+        """
+        d1 = [(z1&x2) for z1, x2 in zip(self.z_vec, stabiliser.x_vec)]
+        d2 = [(x1&z2) for x1, z2 in zip(self.x_vec, stabiliser.z_vec)]
+        return (sum(d1)+sum(d2))%2 == 0
+
 
     def measurement_circuit(self, apply_h_start: bool = True, apply_h_end: bool = True, apply_measure: bool = True) -> QuantumCircuit:
         """
@@ -168,38 +181,94 @@ class StabiliserCode:
             Each Pauli represents a tensor product over all physical qubits.
             Example: 'XZ' = X tensored with Z.
     """
-    def __init__(self, 
-                 num_physical_qubits: int,
-                 stabilisers: list[Pauli]):
-        if num_physical_qubits < 0:
-            raise ValueError("Number of physical qubits must be non-negative.")
+    def __init__(self,
+                 stabilisers: list[Stabiliser]):
         if not stabilisers:
             raise ValueError("Must provide at least one stabiliser.")
-        # check the stabilisers are the right length and square to id not -id
+        # check the stabilisers are the same length and square to id not -id
+        stab_len = stabilisers[0].num_qubits
         for stabiliser in stabilisers:
-            if num_physical_qubits != stabiliser.num_qubits:
-                raise ValueError(f"Each stabiliser must have {num_physical_qubits} Pauli matrices.")
-            if not stabiliser.compose(stabiliser).equiv(Pauli("I"*num_physical_qubits)):
-                raise ValueError(f"{stabiliser} does not square to identity.")        
+            if stab_len != stabiliser.num_qubits:
+                raise ValueError(f"Each stabiliser must have {stab_len} z and x vectors.")
+            if not stabiliser.is_valid():
+                raise ValueError(f"{stabiliser} does not square to the identity.")       
 
         # take stabiliser of space of n physical qubits wrt r stabilisers
         # stabiliser is of dimension 2^{n-r}
-        self.num_logical_qubits = num_physical_qubits - len(stabilisers)
-        self.num_physical_qubits = num_physical_qubits
+        self.num_physical_qubits = stab_len
         self.stabilisers = stabilisers
+        self.stab_generators = self.minimal_generating_set()
+        self.num_logical_qubits = self.num_physical_qubits - self.stab_generators.shape[0]
         self.rate = self.num_logical_qubits / self.num_physical_qubits
+        
+        if not self.all_commute():
+            s,t = self.non_commuting()
+            raise ValueError(f"Invalid list of stabilisers. {s.vec} and {t.vec} do not commute.")
 
+    def non_commuting(self):
+        """
+        Check the stabilisers in the list commute with one another.
+        """
+        for idx, s in enumerate(self.stabilisers):
+            for t in self.stabilisers[idx+1:]:
+                if not s.commutes_with(t):
+                    return s,t
+                
+    def all_commute(self):
+        return self.non_commuting() == None
+
+    def minimal_generating_set(self, error=1e-10):
+        # the stabilisers have order 2 and commute
+        # therefore, the exponent vectors of the stabilisers form a vector space over F2
+        # want to check we have a minimal set of stabiliser generators i.e. find a basis
+        M = np.array([stabiliser.vec for stabiliser in self.stabilisers]).T
+        R = np.linalg.qr(M)[1]
+        independent_indices = np.where(np.abs(np.diag(R)) > error)[0]
+        basis = M[:, independent_indices]
+        return basis.T
+    
+    
+        
 
 
 
 
 if __name__ == "__main__":
-    print(Pauli("XZ").compose(Pauli("ZZ")))
-    print(Pauli("XZIX").tensor(Pauli("X")).num_qubits)
-    print(Pauli("XZ"))
+    print("=== Qiskit Pauli Examples ===")
+    pauli1 = Pauli("XZ")
+    pauli2 = Pauli("ZZ")
+    composed = pauli1.compose(pauli2)
+    print(f"{pauli1.to_label()} * {pauli2.to_label()} = {composed.to_label()}")
     
-    
-    stabz1z2 = Stabiliser(z_vec = np.array([0,1]), x_vec=np.array([1,0]))
-    qc = stabz1z2.measurement_circuit(True, True, True)
-    qc.draw('mpl')
-    plt.show()
+    p = Pauli("XZIX").tensor(Pauli("X"))
+    print(f"Tensor product 'XZIX' ⊗ 'X' has {p.num_qubits} qubits")
+
+    print("\n=== Stabiliser Creation and Properties ===")
+    stabz1z2 = Stabiliser(z_vec=[0,1], x_vec=[1,0])
+    print("Stabiliser z_vec:", stabz1z2.z_vec)
+    print("Stabiliser x_vec:", stabz1z2.x_vec)
+    print("Is stabiliser valid (squares to identity)?", stabz1z2.is_valid())
+
+    print("\n=== Measurement Circuit ===")
+    qc = stabz1z2.measurement_circuit()
+    print(qc.draw(output='text'))
+
+    print("\n=== Stabiliser Code Basis Exploration ===")
+    stabilisers = [
+        Stabiliser([0,0,0],[1,0,0]),
+        Stabiliser([0,1,1],[0,0,0]),
+        Stabiliser([0,0,1],[0,0,0]),
+        Stabiliser([0,1,0],[0,0,0])
+    ]
+    print(stabilisers[0].commutes_with(stabilisers[2]))
+    stabcode = StabiliserCode(stabilisers)
+    print("All commute?", stabcode.all_commute())
+    basis = stabcode.minimal_generating_set()
+    print("Original stabilisers (z_vec, x_vec):")
+    for s in stabilisers: print(s.z_vec, s.x_vec)
+    print("Minimal generating set (basis):")
+    for b in basis: print(b)
+    print("Physical qubits:", stabcode.num_physical_qubits)
+    print("Logical qubits:", stabcode.num_logical_qubits)
+    print("Code rate:", stabcode.rate)
+
