@@ -186,10 +186,11 @@ class StabiliserCode:
 
         # take stabiliser of space of n physical qubits wrt r stabilisers
         # stabiliser is of dimension 2^{n-r}
-        self.num_physical_qubits = stab_len
         self.stabilisers = stabilisers
+        self.num_physical_qubits = stab_len
         self.stab_generators = self.minimal_generating_set()
-        self.num_logical_qubits = self.num_physical_qubits - self.stab_generators[0].num_qubits
+        num_generators = len(self.stab_generators)
+        self.num_logical_qubits = self.num_physical_qubits - num_generators
         self.rate = self.num_logical_qubits / self.num_physical_qubits
         
         non_commuting_pairs = self.non_commuting_pairs()
