@@ -10,7 +10,6 @@ def swap_rows(M: NDArray[np.bool_], i: int, j: int) -> NDArray[np.bool_]:
         - i (int): The index of the first row to be swapped.
         - j (int): The index of the second row to be swapped.
     """
-    M = M.copy()
     M[[i,j], :] = M[[j,i], :]
     return M
 
@@ -25,7 +24,6 @@ def add_rows(M: NDArray[np.bool_], i: int, j: int) -> NDArray[np.bool_]:
         - i (int): The index of the row to add to. Row i will be row i + row j.
         - j (int): The index of the row to add to row i.
     """
-    M = M.copy()
     M[[i],:] ^= M[[j],:]
     return M
 
@@ -40,6 +38,32 @@ def nonzero_in_col(M: NDArray[np.bool_], i: int) -> list[int]:
     col = M[:, i]
     return [idx for idx, x in enumerate(col) if x]
 
+def compute_binary_RREF(M: NDArray[np.bool_]) -> NDArray[np.bool_]:
+    """
+    Compute the reduced row echelon form (RREF) of a matrix.
+
+    Parameters:
+        - M (NDArray): The matrix to change to RREF.
+    """
+    M = M.copy()
+    n_rows, n_cols = M.shape
+    next_row_idx = 0
+    for col_idx in range(n_cols):
+        candidate_rows = nonzero_in_col(M, col_idx)
+        candidate_pivot_rows = [row for row in candidate_rows if row >= col_idx]
+        if not candidate_pivot_rows:
+            continue
+        pivot_row = candidate_pivot_rows.pop(0)
+        for row in candidate_rows:
+            if row != pivot_row:
+                add_rows(M, row, pivot_row)
+        if pivot_row != col_idx:
+            swap_rows(M, next_row_idx, pivot_row)
+        next_row_idx += 1
+        if next_row_idx >= n_rows:
+            break
+    return M
+
 if __name__ == "__main__":
     
     M = np.array([[1,0,1],[1,1,0]])
@@ -48,7 +72,8 @@ if __name__ == "__main__":
     N = np.array([[1,0,1],[1,1,0]])
     print(add_rows(N,0,1))
 
-    L = np.array([[1,0,1],[1,0,1],[0,1,1]])
+    L = np.array([[1,0,1,0],[1,0,1,1],[0,1,1,0],[1,0,1,0],[0,0,1,1]])
     print(nonzero_in_col(L,1))
     
+    print(binary_gaussian(L))
 
