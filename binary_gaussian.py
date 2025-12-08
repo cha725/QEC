@@ -1,7 +1,7 @@
 import numpy as np
 from numpy.typing import NDArray
 
-def row_swap(M: NDArray[np.bool_], i: int, j: int) -> NDArray[np.bool_]:
+def swap_rows(M: NDArray[np.bool_], i: int, j: int) -> NDArray[np.bool_]:
     """
     Swap two rows in a matrix.
 
@@ -40,21 +40,15 @@ def nonzero_in_col(M: NDArray[np.bool_], i: int) -> list[int]:
     col = M[:, i]
     return [idx for idx, x in enumerate(col) if x]
 
-
-
-
 if __name__ == "__main__":
     
     M = np.array([[1,0,1],[1,1,0]])
-    print(row_swap(M,0,1))
+    print(swap_rows(M,0,1))
 
     N = np.array([[1,0,1],[1,1,0]])
-    print(scale_row(N,0,2))
+    print(add_rows(N,0,1))
 
-    L = np.array([[1,0,1],[1,1,0]])
-    print(add_rows(L,0,1))
-
-    K = np.array([[1,0,1],[1,0,1],[0,1,1]])
-    print(nonzero_in_col(K,1))
+    L = np.array([[1,0,1],[1,0,1],[0,1,1]])
+    print(nonzero_in_col(L,1))
     
 
