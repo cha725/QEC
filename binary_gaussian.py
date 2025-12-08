@@ -14,22 +14,6 @@ def row_swap(M: NDArray[np.bool_], i: int, j: int) -> NDArray[np.bool_]:
     M[[i,j], :] = M[[j,i], :]
     return M
 
-def scale_row(M: NDArray[np.bool_], i: int, c: int) -> NDArray[np.bool_]:
-    """
-    Scale a row in a matrix by a constant integer.
-    Note: will be used only for binary matrices over F_2.
-
-    Parameters:
-        - M (NDArray): The matrix on which to perform the scalar multiplication.
-        - i (int): The index of the row to scale.
-        - c (int): The constant to multiple the row with.
-    """
-    M = M.copy()
-    num_rows = M.shape[0]
-    C = np.identity(num_rows)
-    C[i][i] = c
-    return np.matmul(C,M)
-
 def add_rows(M: NDArray[np.bool_], i: int, j: int) -> NDArray[np.bool_]:
     """
     Add two rows in the matrix.
