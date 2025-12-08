@@ -218,8 +218,8 @@ class StabiliserCode:
         
         Compute the row reduced echelon form of the code space.
         """
-        M = np.array([stabiliser.vec for stabiliser in self.stabilisers],dtype=bool).T
-        rref_M = compute_binary_RREF(M).T
+        M = np.array([stabiliser.vec for stabiliser in self.stabilisers],dtype=bool)
+        rref_M = compute_binary_RREF(M)
         nonzero_rows = [row for row in rref_M if row.any()]
         l = nonzero_rows[0].size
         half = l // 2        
@@ -278,3 +278,20 @@ if __name__ == "__main__":
     print("Logical qubits:", stabcode.num_logical_qubits)
     print("Code rate:", stabcode.rate)
 
+    print("\n=== Stabiliser Code Basis Exploration ===")
+    stabilisers = [
+        Stabiliser([0,0,0],[0,0,0]),
+        Stabiliser([1,0,0],[0,0,0]),
+        Stabiliser([0,1,0],[0,0,0]),
+        Stabiliser([1,1,0],[0,0,0])
+    ]
+    print(stabilisers[0].commutes_with(stabilisers[2]))
+    print(stabilisers[0].vec)
+    stabcode = StabiliserCode(stabilisers)
+    print("All commute?", stabcode.all_commute)
+    basis = stabcode.minimal_generating_set()
+    print(stabcode.print_stabilisers())
+    print(stabcode.print_generating_set())
+    print("Physical qubits:", stabcode.num_physical_qubits)
+    print("Logical qubits:", stabcode.num_logical_qubits)
+    print("Code rate:", stabcode.rate)
