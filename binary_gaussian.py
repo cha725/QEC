@@ -1,4 +1,5 @@
 import numpy as np
+from numpy.typing import NDArray
 
 class PermutationMatrix:
     """
@@ -27,7 +28,7 @@ class PermutationMatrix:
         self.row_swap = row_swap
         self.pairs_to_swap = pairs_to_swap or []
         self.matrix_dim = matrix_dim
-        self.matrix = self._create_permutation()
+        self.np_array = self._create_permutation()
 
     def _create_permutation(self):
         """
@@ -41,10 +42,28 @@ class PermutationMatrix:
                 P[:, [i, j]] = P[:, [j, i]]
         return P
     
+def row_swap(M: NDArray, i: int, j: int):
+    """
+    Swap two rows in a matrix.
+
+    Parameters:
+        - m (NDArray): The matrix to switch the rows in.
+        - i (int): The index of the first row to be swapped.
+        - j (int): The index of the second row to be swapped.
+    """
+    M[[i,j], :] = M[[j,i], :]
+    return M
+
+
 
 
 if __name__ == "__main__":
 
     P = PermutationMatrix(True, [[1,2]], 3)
-    print(P.matrix)
+    P = P.np_array
+    print(P)
+    
+    M = np.array([[1,2,3],[4,5,6]])
+    print(row_swap(M,0,1))
+    
 
