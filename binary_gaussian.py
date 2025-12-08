@@ -75,5 +75,5 @@ if __name__ == "__main__":
     L = np.array([[1,0,1,0],[1,0,1,1],[0,1,1,0],[1,0,1,0],[0,0,1,1]])
     print(nonzero_in_col(L,1))
     
-    print(binary_gaussian(L))
+    print(compute_binary_RREF(L))
 
