@@ -1,7 +1,7 @@
 import numpy as np
 from numpy.typing import NDArray
 
-def row_swap(M: NDArray, i: int, j: int):
+def row_swap(M: NDArray, i: int, j: int) -> NDArray:
     """
     Swap two rows in a matrix.
 
@@ -14,7 +14,7 @@ def row_swap(M: NDArray, i: int, j: int):
     M[[i,j], :] = M[[j,i], :]
     return M
 
-def scale_row(M: NDArray, i: int, c: int):
+def scale_row(M: NDArray, i: int, c: int) -> NDArray:
     """
     Scale a row in a matrix by a constant integer.
     Note: will be used only for binary matrices over F_2.
@@ -30,7 +30,7 @@ def scale_row(M: NDArray, i: int, c: int):
     C[i][i] = c
     return np.matmul(C,M)
 
-def add_rows(M: NDArray, i: int, j: int):
+def add_rows(M: NDArray, i: int, j: int) -> NDArray:
     """
     Add two rows in the matrix.
     Note: Add row j to row i. 
@@ -45,6 +45,19 @@ def add_rows(M: NDArray, i: int, j: int):
     M[[i],:] += M[[j],:]
     return M
 
+def nonzero_in_col(M: NDArray, i: int) -> list[bool]:
+    """
+    Return a list of row indices of a matrix that are nonzero in a specific column.
+
+    Parameters:
+        - M (NDArray): The matrix to check.
+        - i (int): The column index to check.
+    """
+    M = M.copy()
+    col = M[:,[i]].T
+    return [x != 0 for x in col]
+
+
 
 
 if __name__ == "__main__":
@@ -56,6 +69,7 @@ if __name__ == "__main__":
     L = np.array([[1,2,3],[4,5,6]])
     print(add_rows(L,0,1))
 
-    
+    K = np.array([[1,0,3],[4,0,6],[0,1,2]])
+    print(nonzero_in_col(K,1))
     
 
