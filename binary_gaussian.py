@@ -1,7 +1,7 @@
 import numpy as np
 from numpy.typing import NDArray
 
-def row_swap(M: NDArray, i: int, j: int) -> NDArray:
+def row_swap(M: NDArray[np.bool_], i: int, j: int) -> NDArray[np.bool_]:
     """
     Swap two rows in a matrix.
 
@@ -14,7 +14,7 @@ def row_swap(M: NDArray, i: int, j: int) -> NDArray:
     M[[i,j], :] = M[[j,i], :]
     return M
 
-def scale_row(M: NDArray, i: int, c: int) -> NDArray:
+def scale_row(M: NDArray[np.bool_], i: int, c: int) -> NDArray[np.bool_]:
     """
     Scale a row in a matrix by a constant integer.
     Note: will be used only for binary matrices over F_2.
@@ -30,7 +30,7 @@ def scale_row(M: NDArray, i: int, c: int) -> NDArray:
     C[i][i] = c
     return np.matmul(C,M)
 
-def add_rows(M: NDArray, i: int, j: int) -> NDArray:
+def add_rows(M: NDArray[np.bool_], i: int, j: int) -> NDArray[np.bool_]:
     """
     Add two rows in the matrix.
     Note: Add row j to row i. 
@@ -42,10 +42,10 @@ def add_rows(M: NDArray, i: int, j: int) -> NDArray:
         - j (int): The index of the row to add to row i.
     """
     M = M.copy()
-    M[[i],:] += M[[j],:]
+    M[[i],:] ^= M[[j],:]
     return M
 
-def nonzero_in_col(M: NDArray, i: int) -> list[bool]:
+def nonzero_in_col(M: NDArray[np.bool_], i: int) -> list[int]:
     """
     Return a list of row indices of a matrix that are nonzero in a specific column.
 
@@ -53,23 +53,24 @@ def nonzero_in_col(M: NDArray, i: int) -> list[bool]:
         - M (NDArray): The matrix to check.
         - i (int): The column index to check.
     """
-    M = M.copy()
-    col = M[:,[i]].T
-    return [x != 0 for x in col]
+    col = M[:, i]
+    return [idx for idx, x in enumerate(col) if x]
 
 
 
 
 if __name__ == "__main__":
     
-    M = np.array([[1,2,3],[4,5,6]])
+    M = np.array([[1,0,1],[1,1,0]])
     print(row_swap(M,0,1))
-    N = np.array([[1,2,3],[4,5,6]])
+
+    N = np.array([[1,0,1],[1,1,0]])
     print(scale_row(N,0,2))
-    L = np.array([[1,2,3],[4,5,6]])
+
+    L = np.array([[1,0,1],[1,1,0]])
     print(add_rows(L,0,1))
 
-    K = np.array([[1,0,3],[4,0,6],[0,1,2]])
+    K = np.array([[1,0,1],[1,0,1],[0,1,1]])
     print(nonzero_in_col(K,1))
     
 
