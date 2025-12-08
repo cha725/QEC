@@ -4,6 +4,9 @@ from qiskit.circuit.library import ZGate, XGate, CZGate
 import numpy as np
 import matplotlib as mpl
 import matplotlib.pyplot as plt
+from typing import Literal
+
+bit = Literal[0,1]
 
 def stabiliserZ1Z2():
     """
@@ -59,8 +62,8 @@ class Stabiliser:
     """
 
     def __init__(self,
-                 z_vec: list[int] = [],
-                 x_vec: list[int] = [],
+                 z_vec: list[bit] = [],
+                 x_vec: list[bit] = [],
                  phase: complex = 1):
         if phase not in [complex(1), complex(-1), complex(0,1), complex(0,-1)]:
             raise ValueError("Phase must be one of {1, -1, i, -i}.")
@@ -97,9 +100,10 @@ class Stabiliser:
         new_phase = self.phase * stabiliser.phase * (-1) ** p_power
 
         # Combine X and Z vectors elementwise using XOR
-        new_z = [(z1+z2)%2 for z1, z2 in zip(self.z_vec, stabiliser.z_vec)]
-        new_x = [(x1+x2)%2 for x1, x2 in zip(self.x_vec, stabiliser.x_vec)]
-
+        # TODO: VSCode does not pick up on the typing without the list[bit] addition
+        # Is there a better way to fix the typing?
+        new_z : list[bit]= [(z1+z2)%2 for z1, z2 in zip(self.z_vec, stabiliser.z_vec)]
+        new_x : list[bit] = [(x1+x2)%2 for x1, x2 in zip(self.x_vec, stabiliser.x_vec)]
         return Stabiliser(new_z, new_x, new_phase)
 
     def square_stabiliser(self) -> 'Stabiliser':
