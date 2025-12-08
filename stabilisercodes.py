@@ -4,8 +4,9 @@ from qiskit.circuit.library import ZGate, XGate, CZGate
 import numpy as np
 import matplotlib as mpl
 import matplotlib.pyplot as plt
-from typing import Literal
+from typing import Literal, Sequence
 from binary_RREF import compute_binary_RREF
+
 
 bit = Literal[0,1]
 
@@ -209,7 +210,7 @@ class StabiliserCode:
             Example: 'XZ' = X tensored with Z.
     """
     def __init__(self,
-                 stabilisers: list[Stabiliser]):
+                 stabilisers: Sequence[Stabiliser]):
         if not stabilisers:
             raise ValueError("Must provide at least one stabiliser.")
         # check the stabilisers are the same length, -id is not in the list and square to id not -id

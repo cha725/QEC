@@ -19,7 +19,9 @@ class CSSStabiliser(Stabiliser):
 
     def __init__(self,
                  z_type : bool = True,
-                 vec : list[bit] = []):
+                 vec : list[bit] | None = None):
+        if vec is None:
+            vec = []
         if z_type:
             z_vec = vec
             x_vec : list[bit] = [0]*len(z_vec)
@@ -30,10 +32,16 @@ class CSSStabiliser(Stabiliser):
 
 class CSSStabiliserCode(StabiliserCode):
     def __init__(self,
-                 z_vecs: list[list[bit]] = [],
-                 x_vecs: list[list[bit]] = []):
+                 z_vecs: list[list[bit]] | None = None,
+                 x_vecs: list[list[bit]] | None = None):
+        if z_vecs is None:
+            z_vecs = []
+        if x_vecs is None:
+            x_vecs = []
         z_stabilisers = [CSSStabiliser(True, vec) for vec in z_vecs]
-        x_stabilisers = [CSSStabiliser(True, vec) for vec in x_vecs]
+        x_stabilisers = [CSSStabiliser(False, vec) for vec in x_vecs]
         all_stabilisers = z_stabilisers + x_stabilisers
         super().__init__(all_stabilisers)
+
+
 
