@@ -1,46 +1,12 @@
+import numpy as np
 from qiskit import QuantumCircuit
 from qiskit.quantum_info import Pauli
-from qiskit.circuit.library import ZGate, XGate, CZGate
-import numpy as np
-import matplotlib as mpl
-import matplotlib.pyplot as plt
+from qiskit.circuit.library import CZGate
 from typing import Literal, Sequence
+
 from binary_RREF import compute_binary_RREF
 
-
 bit = Literal[0,1]
-
-def stabiliserZ1Z2():
-    """
-    Create the quantum circuit to measure the Z1Z2 syndrome.
-    The Z1Z2 stabiliser measures two logic qubits into 1 ancilla qubit.
-
-    The operator Z1Z2 stabilises linear combinations of 00 and 11.
-
-    This is the circuit:
-        CNOT(control=first logical qubit, target=ancilla)
-        CNOT(control=second logical qubit, target=ancilla)
-        Measure(ancilla in Z basis)
-    
-    Theoretically this is what happens:
-        This circuit applies the following:
-            00|0 -first CNOT-> 00|0 -second CNOT-> 00|0 : the ancilla = 0
-            01|0 -first CNOT-> 01|0 -second CNOT-> 01|1 : the ancilla = 1
-            10|0 -first CNOT-> 10|1 -second CNOT-> 10|1 : the ancilla = 1
-            11|0 -first CNOT-> 11|1 -second CNOT-> 11|0 : the ancilla = 0
-        Measure the ancilla in the Z basis i.e. project onto {0,1} basis.
-    
-    Syndrome behavior:
-        - Ancilla collapses to 0 if the qubits were |00> or |11> (syndrome = 0)
-        - Ancilla collapses to 1 if the qubits were |01> or |10> (syndrome = 1)
-    """
-    qc = QuantumCircuit(3,1)
-    qc.cx(0,2)
-    qc.cx(1,2)
-    qc.measure(2,0)
-    return qc
-
-import numpy as np
 
 class Stabiliser:
     """
@@ -140,7 +106,6 @@ class Stabiliser:
         d2 = [(x1&z2) for x1, z2 in zip(self.x_vec, stabiliser.z_vec)]
         return (sum(d1)+sum(d2))%2 == 0
 
-
     def measurement_circuit(self, apply_h_start: bool = True, apply_h_end: bool = True, apply_measure: bool = True) -> QuantumCircuit:
         """
         Create quantum circuit to measure the syndrome of this stabiliser.
@@ -193,10 +158,6 @@ class Stabiliser:
             return f"Stabiliser(Tensor={list})"
         else:
             return f"Stabiliser(Phase={self.phase}, Tensor={list})"
-
-
-
-
 
 class StabiliserCode:
     """
@@ -278,8 +239,6 @@ class StabiliserCode:
         print("Minimal generating set:")
         for idx, stab in enumerate(self.minimal_generating_set()):
             print(f" B{idx}={stab}")
-
-
 
 if __name__ == "__main__":
     print("=== Qiskit Pauli Examples ===")
