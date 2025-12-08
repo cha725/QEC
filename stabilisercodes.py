@@ -4,7 +4,7 @@ from qiskit.quantum_info import Pauli
 from qiskit.circuit.library import CZGate
 from typing import Literal, Sequence
 
-from binary_RREF import compute_binary_RREF
+from binary_RREF import BinaryMatrix
 
 bit = Literal[0,1]
 
@@ -141,7 +141,7 @@ class Stabiliser:
         """
         Check if two stabilisers are the same.
         """
-        return (self.z_vec == other.z_vec and self.x_vec == other.x_vec and self.phase == other.phase)
+        return (np.array_equal(self.z_vec, other.z_vec) and np.array_equal(self.x_vec, other.x_vec) and self.phase == other.phase)
 
     def __repr__(self):
         list = []
@@ -220,7 +220,8 @@ class StabiliserCode:
         Compute the row reduced echelon form of the code space.
         """
         M = np.array([stabiliser.vec for stabiliser in self.stabilisers],dtype=bool)
-        rref_M = compute_binary_RREF(M)
+        B = BinaryMatrix(M)
+        rref_M = B.rref
         nonzero_rows = [row for row in rref_M if row.any()]
         l = nonzero_rows[0].size
         half = l // 2        
