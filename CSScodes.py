@@ -1,6 +1,6 @@
-from stabilizercodes import Stabiliser, StabiliserCode
+from stabilisercodes import Stabiliser, StabiliserCode
 from typing import Literal
-from stabilizercodes import bit
+from stabilisercodes import bit
 
 class CSSStabiliser(Stabiliser):
     """

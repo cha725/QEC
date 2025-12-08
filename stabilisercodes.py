@@ -5,6 +5,7 @@ import numpy as np
 import matplotlib as mpl
 import matplotlib.pyplot as plt
 from typing import Literal
+from binary_RREF import compute_binary_RREF
 
 bit = Literal[0,1]
 
@@ -234,7 +235,7 @@ class StabiliserCode:
         if not self.all_commute:
             raise ValueError(f"Invalid list of stabilisers. {non_commuting_pairs} do not commute.")
 
-    def non_commuting_pairs(self):
+    def non_commuting_pairs(self) -> list[tuple[int,...]]:
         """
         Check the stabilisers in the list commute with one another.
         """
@@ -245,30 +246,34 @@ class StabiliserCode:
                     non_commuting.append((s,t))
         return non_commuting
                 
-    def minimal_generating_set(self, error=1e-10):
-        # the stabilisers have order 2 and commute
-        # therefore, the exponent vectors of the stabilisers form a vector space over F2
-        # want to check we have a minimal set of stabiliser generators i.e. find a basis
+    def minimal_generating_set(self) -> list[Stabiliser]:
+        """
+        Find minimal generating set of stabilisers.
+        Note:
+            - stabilisers have order 2 and commute
+            - the exponent vectors of the stabilisers form a vector space over F2
+            - want to check we have a minimal set of stabiliser generators i.e. find a basis
+        
+        Compute the row reduced echelon form of the code space.
+        """
         M = np.array([stabiliser.vec for stabiliser in self.stabilisers],dtype=bool).T
-        print(M)
-        R = np.linalg.qr(M)[1]
-        print(R)
-        independent_indices = np.where(np.abs(np.diag(R)) > error)[0]
-        basis = M[:, independent_indices].T
+        rref_M = compute_binary_RREF(M).T
+        nonzero_rows = [row for row in rref_M if row.any()]
+        l = nonzero_rows[0].size
+        half = l // 2        
         stab_basis = []
-        l = basis[0].size
-        for b in basis:
-            bz = b[:int(l*0.5)]
-            bx = b[int(l*0.5):]
+        for b in nonzero_rows:
+            bz = b[:int(half)]
+            bx = b[int(half):]
             stab_basis.append(Stabiliser(bz,bx))          
         return stab_basis
 
-    def print_stabilisers(self):
+    def print_stabilisers(self) -> None:
         print("Stabilisers:")
         for idx, stab in enumerate(self.stabilisers):
             print(f"  S{idx}={stab}")
     
-    def print_generating_set(self):
+    def print_generating_set(self) -> None:
         print("Minimal generating set:")
         for idx, stab in enumerate(self.minimal_generating_set()):
             print(f" B{idx}={stab}")
@@ -303,6 +308,7 @@ if __name__ == "__main__":
         Stabiliser([1,1,0],[0,0,0])
     ]
     print(stabilisers[0].commutes_with(stabilisers[2]))
+    print(stabilisers[0].vec)
     stabcode = StabiliserCode(stabilisers)
     print("All commute?", stabcode.all_commute)
     basis = stabcode.minimal_generating_set()
@@ -312,19 +318,3 @@ if __name__ == "__main__":
     print("Logical qubits:", stabcode.num_logical_qubits)
     print("Code rate:", stabcode.rate)
 
-    print("\n=== Stabiliser Code Basis Exploration 2 ===")
-    stabilisers = [
-        Stabiliser([0,0,0],[1,0,0]),
-        Stabiliser([0,1,1],[0,0,0]),
-        Stabiliser([1,0,1],[0,0,0]),
-        Stabiliser([1,1,0],[0,0,0])
-    ]
-    print(stabilisers)
-    print(stabilisers[0].commutes_with(stabilisers[2]))
-    stabcode = StabiliserCode(stabilisers)
-    print("All commute?", stabcode.all_commute)
-    print(stabcode.print_stabilisers())
-    print(stabcode.print_generating_set())
-    print("Physical qubits:", stabcode.num_physical_qubits)
-    print("Logical qubits:", stabcode.num_logical_qubits)
-    print("Code rate:", stabcode.rate)
