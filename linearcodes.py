@@ -56,9 +56,6 @@ class HammingCode(LinearCode):
         self.generator_matrix = self.dual_code.parity_check
         super().__init__(BinaryMatrix(self.generator_matrix))
 
-
-
-
 if __name__ == "__main__":
 
     ### Repetition code ###
