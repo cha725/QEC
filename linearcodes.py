@@ -6,23 +6,42 @@ from CSScodes import CSSStabiliserCode
 
 class LinearCode():
     def __init__(self,
-                 generators: BinaryMatrix | None = None):
-        if generators is None:
-            raise ValueError("Must provide at least one generator.")
-        self.generators = generators
-        self.n = generators.matrix.shape[1]
-        self.generator_matrix = self.generators.generator_matrix
-        self.rank = self.generators.rank
-        self.minimal_generators = [self.generator_matrix[idx,:] for idx in range(self.rank)]
-        self.parity_check = self.generators.parity_check_matrix
+                 generator_matrix: BinaryMatrix | None = None,
+                 parity_check_matrix: BinaryMatrix | None = None):
+        if generator_matrix is None and parity_check_matrix is None:
+            raise ValueError("Must provide either a generator or parity check matrix.")
+        if generator_matrix is not None:
+            self.generator_matrix = generator_matrix
+            self.n = generator_matrix.shape[1]
+            self.rank = generator_matrix.rank
+            self.parity_check_matrix = generator_matrix.nullspace
+        if parity_check_matrix is not None:
+            self.parity_check_matrix = parity_check_matrix
+            self.n = parity_check_matrix.shape[1]
+            self.rank = self.n - parity_check_matrix.rank
+            self.generator_matrix = parity_check_matrix.nullspace
+        
+        self.validate_code()
+
+    def validate_code(self):
+        """
+        Check generator and parity check matrices are compatible.
+        """
+        if self.rank < self.generator_matrix.rank:
+            raise ValueError("Rank of parity check matrix is too small.")
+        if self.rank > self.generator_matrix.rank:
+            raise ValueError("Rank of parity check matrix is too large.")
+        M = np.matmul(self.generator_matrix.array, self.parity_check_matrix.array.T)
+        if not np.all(M % 2 == 0):
+            raise ValueError("Generator and parity check matrices are not orthogonal.")
 
     def css_code_from_linear(self):
         """
         Create corresponding CSS code.
         """
-        G = self.generator_matrix
+        G = self.generator_matrix.array
         z_vecs = [list(G[idx,:]) for idx in range(G.shape[0])]
-        H = self.parity_check
+        H = self.parity_check_matrix.array
         x_vecs = [list(H[idx,:]) for idx in range(H.shape[0])]
         return CSSStabiliserCode(z_vecs=z_vecs, x_vecs=x_vecs)
 
@@ -67,8 +86,8 @@ class HammingCode(LinearCode):
         H = BinaryMatrix(np.array(parity_check_cols).T)
         self.dual_code = LinearCode(H)
         self.parity_check = self.dual_code.generator_matrix
-        self.generator_matrix = self.dual_code.parity_check
-        super().__init__(BinaryMatrix(self.generator_matrix))
+        self.generator_matrix = self.dual_code.parity_check_matrix
+        super().__init__(BinaryMatrix(self.generator_matrix.array))
 
 if __name__ == "__main__":
 
@@ -82,7 +101,7 @@ if __name__ == "__main__":
                 print(f"=== The code type is: {code.__class__.__name__} === \n")
                 print(f"[n, k] = [{code.n}, {code.rank}] \n")
                 print(f"Generator matrix: \n {code.generator_matrix} \n")
-                print(f"Parity check matrix: \n {code.parity_check} \n")
+                print(f"Parity check matrix: \n {code.parity_check_matrix} \n")
                 print(f"=== Induced CSS code === \n")
                 css_code = code.css_code_from_linear()
                 if css_code.all_commute:
