@@ -1,161 +1,144 @@
 import numpy as np
-from scipy.linalg import null_space
-
 from functools import cached_property
-from scipy.linalg import null_space
-
 from numpy.typing import NDArray
 
 class BinaryMatrix:
 
     def __init__(self,
-                 matrix: NDArray[np.bool_]):
-        self.matrix = matrix.copy()
-        self.num_rows = self.matrix.shape[0]
-        self.num_cols = self.matrix.shape[1]
+                 array: NDArray[np.bool_]):
+        self._array = array.copy()
+        self.shape = self._array.shape
 
-
-    def swap_rows(self , i: int, j: int) -> None:
+    @property
+    def array(self) -> NDArray[np.bool_]:
+        return self._array
+    
+    def __array__(self, dtype):
         """
-        Swap rows i and j in the matrix.
+        Allows a binary matrix to be treated like a numpy array.
+        """
+        return np.array(self._array, dtype=dtype)
+
+    def swap_rows(self, row1: int, row2: int) -> None:
+        """
+        Swap rows 1 and 2 in the matrix.
 
         Parameters:
-            - i (int): The index of the first row to be swapped.
-            - j (int): The index of the second row to be swapped.
+            - row1 (int): The index of the first row to be swapped.
+            - row2 (int): The index of the second row to be swapped.
         """
-        self.matrix[[i,j], :] = self.matrix[[j,i], :]
+        self._array[[row1, row2], :] = self._array[[row2, row1], :]
 
-    def add_rows(self , source_idx: int, target_idx: int) -> None:
+    def add_rows(self, source_row: int, target_row: int) -> None:
         """
         Add two rows in the matrix.
         Note: 
-            - Add source_idx row to row target_idx_row.
-            - The source_idx row remains untouched.
+            - Add source_row to target_row.
+            - The source_row row remains untouched.
         """
-        self.matrix[[target_idx],:] ^= self.matrix[[source_idx],:]
-
-    def nonzero_in_col(self , idx: int) -> list[int]:
-        """
-        Return a list of row indices of a matrix that are nonzero in a specific column.
-
-        Parameters:
-            - idx (int): The column index to check.
-        """
-        return [int(idx) for idx in list(np.flatnonzero(self.matrix[:,idx]))]
+        self._array[target_row, :] ^= self._array[source_row, :]
 
     @cached_property
-    def rref(self ) -> NDArray[np.bool_]:
+    def _rref_algorithm(self) -> tuple["BinaryMatrix", list[tuple[int,...]]]:
         """
         Compute the reduced row echelon form (RREF) of a matrix.
         """
-        M = BinaryMatrix(self.matrix)
-        num_cols = M.num_cols
-        next_row_idx = 0
-        for col_idx in range(num_cols):
-            candidate_rows = M.nonzero_in_col(col_idx)
-            candidate_pivot_rows = [row for row in candidate_rows if row >= col_idx]
-            if not candidate_pivot_rows:
-                continue
-            pivot_row = candidate_pivot_rows.pop(0)
-            for row in candidate_rows:
-                if row != pivot_row:
-                    M.add_rows(pivot_row, row)
-            if pivot_row != col_idx:
-                M.swap_rows(next_row_idx, pivot_row)
-            next_row_idx += 1
-            if next_row_idx >= M.num_rows:
+        M = BinaryMatrix(self._array.copy())
+        num_rows, num_cols = M.shape
+        pivot_coords = []
+        start_row = 0
+        for col in range(num_cols):
+            if start_row >= num_rows:
                 break
-        return M.matrix    
+            # Find pivot rows 
+            # i.e. rows below start_row that have a nonzero entry in col_idx
+            pivot_rows = [r for r in range(start_row,num_rows) if M.array[r, col]]
+            # if there are no rows with a nonzero entry in col, move on
+            if not pivot_rows:
+                continue
+            # take the first pivot row
+            pivot_row = pivot_rows.pop(0)
+            # if row has nonzero entry in col add pivot row to make zero (working mod2)
+            for row in range(num_rows):
+                if row != pivot_row and M.array[row,col]:
+                    M.add_rows(pivot_row, row)
+            # swap pivot row with the next available row
+            if pivot_row != start_row:
+                M.swap_rows(start_row, pivot_row)
+            pivot_coords.append((start_row, col))
+            start_row += 1
+        return M, pivot_coords
     
+    @cached_property
+    def rref(self) -> "BinaryMatrix":
+        return self._rref_algorithm[0]
+    
+    @cached_property
+    def generators(self) -> NDArray[np.bool_]:
+        """
+        Return basis of row space of binary matrix as a numpy array.
+        Only keep those rows that have a nonzero entry.
+        """
+        R = self.rref.array
+        return R[~np.all(R == 0, axis=1),:]
+
     @property
     def rank(self) -> int:
         """
         Return rank of matrix over F2.
         """
-        rank = 0
-        matrix = self.rref
-        for row_idx in range(self.num_rows):
-            if matrix[row_idx,:].any():
-                rank += 1
-        return rank
-    
-    @cached_property
-    def generator_matrix(self) -> NDArray[np.bool_]:
-        return self.rref[~np.all(self.rref == 0, axis=1),:]
-    
-    def non_identity_part_gen(self):
-        return self.generator_matrix[:, range(self.rank, self.num_cols)]
+        return self.generators.shape[0]  
 
     @cached_property
-    def kernel(self) -> NDArray:
-        M = self.rref
-        m = M.shape[0]
+    def nullspace(self) -> "BinaryMatrix":
+        M, pivots = self._rref_algorithm
         n = M.shape[1]
-
-        pivot_positions = []
-        pivot_cols = set()
-        for row_idx in range(m):
-            row = M[row_idx,:]
-            for col_idx in range(n):
-                if row[col_idx] == 1:
-                    pivot_positions.append((row_idx, col_idx))
-                    pivot_cols.add(col_idx)
-                    break
-
-        free_cols = [col_idx for col_idx in range(n) if col_idx not in pivot_cols]
-        if not free_cols:
-            return np.array([0 for _ in range(n)])
-        pivot_positions.sort(key=lambda rc: rc[1])
+        pivot_cols = [c for _, c in pivots]
+        free_cols = [c for c in range(n) if c not in pivot_cols]
+        
         basis = []
-        for fc_idx in free_cols:
-            v = [0 for _ in range(n)]
-            v[fc_idx] = 1
-            for r, c in reversed(pivot_positions):
-                s = 0
-                row = M[r]
-                for j in range(c + 1, n):
-                    if row[j] and v[j]:
-                        s ^= 1
-                v[c] = s
-            basis.append(v)
-        return np.array(basis)
-    
-    @cached_property
-    def parity_check_matrix(self) -> NDArray:
-        return self.kernel
+        for free in free_cols:
+            vec = np.zeros(n, dtype=bool)
+            vec[free] = True
+            for row, col in reversed(pivots):
+                s = np.any(M.array[row, col+1:] & vec[col+1:])
+                vec[col] = s
+            basis.append(vec)
+        
+        if basis:
+            return BinaryMatrix(np.array(basis, dtype=int))
+        else:
+            return BinaryMatrix(np.zeros(self.shape[1], dtype=int))
+
 
 
 if __name__ == "__main__":
     
     M = BinaryMatrix(np.array([[1,0,1,0],[1,0,1,1],[0,1,1,0],[1,0,1,0],[0,0,1,1]]))
 
-    print(f"Matrix: {M.matrix}")
+    print(f"Matrix: {M.array}")
     M.swap_rows(0,1)
-    print(f"Swap rows 0 and 1: {M.matrix}")
+    print(f"Swap rows 0 and 1: {M.array}")
     M.add_rows(1,0)
-    print(f"Add row 1 to row 0: {M.matrix}")
-    print(f"Nonzero entries in column 2: {M.nonzero_in_col(2)}")
-    print(f"RREF form: {M.rref}")
-    print(f"Generator matrix: {M.generator_matrix}")
-    print(f"Non-identity part: {M.non_identity_part_gen()}")
+    print(f"Add row 1 to row 0: {M.array}")
+    print(f"RREF: {M.rref.array}")
+    print(f"Generator matrix: {M.generators}")
     print(f"Rank of M = {M.rank}")
-    print(f"Kernel of M: {M.kernel}")
-    print(f"Parity check matrix: {M.parity_check_matrix}")
+    print(f"Nullspace of M: {M.nullspace.array}")
+    # print(f"Basis of nullspace of M: {M.nullspace_basis}")
 
 
     M = BinaryMatrix(np.array([[1,0,1,0],[1,0,1,0],[0,1,1,0],[1,0,1,0],[0,0,1,0]]))
 
-    print(f"Matrix: {M.matrix}")
+    print(f"Matrix: {M.array}")
     M.swap_rows(0,1)
-    print(f"Swap rows 0 and 1: {M.matrix}")
+    print(f"Swap rows 0 and 1: {M.array}")
     M.add_rows(1,0)
-    print(f"Add row 1 to row 0: {M.matrix}")
-    print(f"Nonzero entries in column 2: {M.nonzero_in_col(2)}")
-    print(f"RREF form: {M.rref}")
-    print(f"Generator matrix: {M.generator_matrix}")
-    print(f"Non-identity part: {M.non_identity_part_gen()}")
+    print(f"Add row 1 to row 0: {M.array}")
+    print(f"RREF: {M.rref.array}")
+    print(f"Generator matrix: {M.generators}")
     print(f"Rank of M = {M.rank}")
-    print(f"Kernel of M: {M.kernel}")
-    print(f"Parity check matrix: {M.parity_check_matrix}")
+    print(f"Nullspace of M: {M.nullspace.array}")
+    # print(f"Basis of nullspace of M: {M.nullspace_basis}")
     
 
