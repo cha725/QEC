@@ -125,7 +125,6 @@ if __name__ == "__main__":
     print(f"Generator matrix: {M.generators}")
     print(f"Rank of M = {M.rank}")
     print(f"Nullspace of M: {M.nullspace.array}")
-    # print(f"Basis of nullspace of M: {M.nullspace_basis}")
 
 
     M = BinaryMatrix(np.array([[1,0,1,0],[1,0,1,0],[0,1,1,0],[1,0,1,0],[0,0,1,0]]))
@@ -139,6 +138,5 @@ if __name__ == "__main__":
     print(f"Generator matrix: {M.generators}")
     print(f"Rank of M = {M.rank}")
     print(f"Nullspace of M: {M.nullspace.array}")
-    # print(f"Basis of nullspace of M: {M.nullspace_basis}")
     
 
