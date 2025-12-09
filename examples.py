@@ -1,6 +1,8 @@
 from stabilisercodes import bit
 from CSScodes import CSSStabiliserCode
 
+### Steane code ###
+
 z_vecs = [[0,0,0,1,1,1,1],
           [0,1,1,0,0,1,1],
           [1,0,1,0,1,0,1]]
@@ -18,3 +20,5 @@ steane_code.print_generating_set()
 print("Physical qubits:", steane_code.num_physical_qubits)
 print("Logical qubits:", steane_code.num_logical_qubits)
 print("Code rate:", steane_code.rate)
+
+

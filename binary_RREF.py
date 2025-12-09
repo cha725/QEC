@@ -1,4 +1,5 @@
 import numpy as np
+from scipy.linalg import null_space
 
 from functools import cached_property
 from scipy.linalg import null_space
@@ -49,7 +50,6 @@ class BinaryMatrix:
         """
         M = BinaryMatrix(self.matrix)
         num_cols = M.num_cols
-        num_rows = M.num_rows
         next_row_idx = 0
         for col_idx in range(num_cols):
             candidate_rows = M.nonzero_in_col(col_idx)
@@ -65,8 +65,8 @@ class BinaryMatrix:
             next_row_idx += 1
             if next_row_idx >= M.num_rows:
                 break
-        return M.matrix
-            
+        return M.matrix    
+    
     @property
     def rank(self) -> int:
         """
@@ -88,11 +88,38 @@ class BinaryMatrix:
 
     @cached_property
     def kernel(self) -> NDArray:
-        X = self.non_identity_part_gen()
-        if X.size == 0:
-            return np.zeros([1,self.num_cols], int)
-        I = np.identity(self.num_cols - self.rank, int)
-        return np.hstack([X.T, I])
+        M = self.rref
+        m = M.shape[0]
+        n = M.shape[1]
+
+        pivot_positions = []
+        pivot_cols = set()
+        for row_idx in range(m):
+            row = M[row_idx,:]
+            for col_idx in range(n):
+                if row[col_idx] == 1:
+                    pivot_positions.append((row_idx, col_idx))
+                    pivot_cols.add(col_idx)
+                    break
+
+        free_cols = [col_idx for col_idx in range(n) if col_idx not in pivot_cols]
+        if not free_cols:
+            return np.array([0 for _ in range(n)])
+        pivot_positions.sort(key=lambda rc: rc[1])
+        basis = []
+        for fc_idx in free_cols:
+            v = [0 for _ in range(n)]
+            v[fc_idx] = 1
+            for r, c in reversed(pivot_positions):
+                s = 0
+                row = M[r]
+                for j in range(c + 1, n):
+                    if row[j] and v[j]:
+                        s ^= 1
+                v[c] = s
+            basis.append(v)
+
+        return np.array(basis)
     
     @cached_property
     def parity_check_matrix(self) -> NDArray:
