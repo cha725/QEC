@@ -10,7 +10,7 @@ class LinearCode():
         if generators is None:
             raise ValueError("Must provide at least one generator.")
         self.generators = generators
-        self.n = generators.matrix.shape[0]
+        self.n = generators.matrix.shape[1]
         self.generator_matrix = self.generators.generator_matrix
         self.rank = self.generators.rank
         self.minimal_generators = [self.generator_matrix[idx,:] for idx in range(self.rank)]
@@ -79,26 +79,17 @@ if __name__ == "__main__":
 
         def print(self):
             for code in self.examples:
+                print(type(code))
                 print(f"Generator matrix: \n {code.generator_matrix}")
-                print(f"[n,k] = [{code.n , code.rank}]")
+                print(f"[n, k] = [{code.n}, {code.rank}]")
                 print(f"Parity check matrix: \n {code.parity_check}")
-                css_code = H.css_code_from_linear()
+                css_code = code.css_code_from_linear()
                 print(css_code.all_commute)
                 print(css_code.stab_generators)
 
+    examples = Examples([RepetitionCode(4),
+                         HammingCode(3)])
+    
+    examples.print()
 
-
-    ### Repetition code ###
-    B = BinaryMatrix(np.array([[1,1,1]]))
-    LC = LinearCode(B)
-    code = LC.css_code_from_linear()
-    print(code.all_commute)
-    print(code.stab_generators)
-
-    ### Hamming code [7,4,1] ###4
-    H = HammingCode(3)
-    print("generator matrix", H.generator_matrix)
-    print("parity check", H.parity_check)
-    css_code = H.css_code_from_linear()
-    print(css_code.all_commute)
-    print(css_code.stab_generators)
+    
