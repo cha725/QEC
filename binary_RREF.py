@@ -118,7 +118,6 @@ class BinaryMatrix:
                         s ^= 1
                 v[c] = s
             basis.append(v)
-
         return np.array(basis)
     
     @cached_property
