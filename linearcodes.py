@@ -1,7 +1,5 @@
+from collections.abc import Sequence
 import numpy as np
-from numpy.typing import NDArray
-from typing import Literal
-bit = Literal[0,1]
 
 from binary_RREF import BinaryMatrix
 from CSScodes import CSSStabiliserCode
@@ -12,6 +10,7 @@ class LinearCode():
         if generators is None:
             raise ValueError("Must provide at least one generator.")
         self.generators = generators
+        self.n = generators.matrix.shape[0]
         self.generator_matrix = self.generators.generator_matrix
         self.rank = self.generators.rank
         self.minimal_generators = [self.generator_matrix[idx,:] for idx in range(self.rank)]
@@ -57,6 +56,22 @@ class HammingCode(LinearCode):
         super().__init__(BinaryMatrix(self.generator_matrix))
 
 if __name__ == "__main__":
+
+    class Examples:
+        def __init__(self,
+                     examples: Sequence[LinearCode]):
+            self.examples = examples
+
+        def print(self):
+            for code in self.examples:
+                print(f"Generator matrix: \n {code.generator_matrix}")
+                print(f"[n,k] = [{code.n , code.rank}]")
+                print(f"Parity check matrix: \n {code.parity_check}")
+                css_code = H.css_code_from_linear()
+                print(css_code.all_commute)
+                print(css_code.stab_generators)
+
+
 
     ### Repetition code ###
     B = BinaryMatrix(np.array([[1,1,1]]))
