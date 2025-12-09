@@ -84,8 +84,11 @@ if __name__ == "__main__":
                 print(f"[n, k] = [{code.n}, {code.rank}]")
                 print(f"Parity check matrix: \n {code.parity_check}")
                 css_code = code.css_code_from_linear()
-                print(css_code.all_commute)
-                print(css_code.stab_generators)
+                if css_code.all_commute:
+                    print("All stabilisers commute.")
+                stab_generators = css_code.stab_generators
+                for generator in stab_generators:
+                    print(generator)
 
     examples = Examples([RepetitionCode(4),
                          HammingCode(3)])
