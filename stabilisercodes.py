@@ -221,7 +221,7 @@ class StabiliserCode:
         """
         M = np.array([stabiliser.vec for stabiliser in self.stabilisers],dtype=bool)
         B = BinaryMatrix(M)
-        rref_M = B.rref
+        rref_M = B.rref.array
         nonzero_rows = [row for row in rref_M if row.any()]
         l = nonzero_rows[0].size
         half = l // 2        
