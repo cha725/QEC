@@ -26,6 +26,21 @@ class LinearCode():
         x_vecs = [list(H[idx,:]) for idx in range(H.shape[0])]
         return CSSStabiliserCode(z_vecs=z_vecs, x_vecs=x_vecs)
 
+class RepetitionCode(LinearCode):
+    """
+    Represents a repetition code as a subclass of LinearCode.
+
+    A repetition code is the code with two codewords 0 and 1.
+
+    Attribute:
+        - codeword_length (int): Length of the codeword.
+    """
+    def __init__(self,
+                 codeword_length: int):
+        B = BinaryMatrix(np.array([[1,1,1]]))
+        super().__init__(B)
+
+
 class HammingCode(LinearCode):
     """
     Represents a Hamming code as a subclass of LinearCode.
