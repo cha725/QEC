@@ -79,16 +79,19 @@ if __name__ == "__main__":
 
         def print(self):
             for code in self.examples:
-                print(type(code))
-                print(f"Generator matrix: \n {code.generator_matrix}")
-                print(f"[n, k] = [{code.n}, {code.rank}]")
-                print(f"Parity check matrix: \n {code.parity_check}")
+                print(f"=== The code type is: {code.__class__.__name__} === \n")
+                print(f"[n, k] = [{code.n}, {code.rank}] \n")
+                print(f"Generator matrix: \n {code.generator_matrix} \n")
+                print(f"Parity check matrix: \n {code.parity_check} \n")
+                print(f"=== Induced CSS code === \n")
                 css_code = code.css_code_from_linear()
                 if css_code.all_commute:
-                    print("All stabilisers commute.")
+                    print("All stabilisers commute. \n")
+                print("List of stabilisers:\n")
                 stab_generators = css_code.stab_generators
                 for generator in stab_generators:
                     print(generator)
+                print()
 
     examples = Examples([RepetitionCode(4),
                          HammingCode(3)])
