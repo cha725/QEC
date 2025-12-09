@@ -110,6 +110,9 @@ class BinaryMatrix:
         else:
             return BinaryMatrix(np.zeros(self.shape[1], dtype=int))
 
+    def __repr__(self):
+        return f"Binary matrix: \n {self.array}."
+
 
 
 if __name__ == "__main__":
