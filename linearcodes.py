@@ -37,7 +37,7 @@ class RepetitionCode(LinearCode):
     """
     def __init__(self,
                  codeword_length: int):
-        B = BinaryMatrix(np.array([[1,1,1]]))
+        B = BinaryMatrix(np.array([[1 for _ in range(codeword_length)]]))
         super().__init__(B)
 
 
