@@ -1,5 +1,7 @@
-from collections.abc import Sequence
 import numpy as np
+
+from collections.abc import Sequence
+from numpy.typing import NDArray
 
 from binary_RREF import BinaryMatrix
 from CSScodes import CSSStabiliserCode
@@ -22,6 +24,7 @@ class LinearCode():
             self.generator_matrix = parity_check_matrix.nullspace
         
         self.validate_code()
+        self.rate: float = self.n / self.rank
 
     def validate_code(self):
         """
@@ -34,6 +37,22 @@ class LinearCode():
         M = np.matmul(self.generator_matrix.array, self.parity_check_matrix.array.T)
         if not np.all(M % 2 == 0):
             raise ValueError("Generator and parity check matrices are not orthogonal.")
+
+    def encode(self, message: NDArray):
+        """
+        Encode message using linear code.
+        Returns uG where u is the message and G is the generator matrix.
+        """
+        if message.shape[1] != self.rank:
+            raise ValueError(f"Invalid message length. Must have {self.rank} columns.")
+        M = np.matmul(message, self.generator_matrix.array, dtype=bool)
+        return np.array(M, dtype=int)
+    
+    def syndrome(self, vec: NDArray):
+        if vec.shape != [1, self.n]:
+            raise ValueError(f"Invalid vector size. Must be [1,{self.n}].")
+        M = np.matmul(vec.T, self.parity_check_matrix.array, dtype=bool)
+        return np.array(M, dtype=int)
 
     def css_code_from_linear(self):
         """
