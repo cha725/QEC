@@ -1,0 +1,23 @@
+# VS Code settings folder
+.vscode/
+
+# Logs and temp
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Python caches
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# Node / build outputs
+node_modules/
+dist/
+build/
+
+# OS files
+.DS_Store
+Thumbs.db
