@@ -49,6 +49,10 @@ class LinearCode():
         return np.array(M, dtype=int)
     
     def syndrome(self, vec: NDArray):
+        """
+        Computes syndrome of vector.
+        Returns Hv^T where v is the vector and H is the parity check matrix.
+        """
         if vec.shape != [1, self.n]:
             raise ValueError(f"Invalid vector size. Must be [1,{self.n}].")
         M = np.matmul(vec.T, self.parity_check_matrix.array, dtype=bool)
