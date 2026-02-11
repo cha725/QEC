@@ -8,14 +8,12 @@ from CSScodes import CSSStabiliserCode
 
 class Codeword():
     def __init__(self,
-                 vector: BinaryMatrix):
-        if vector.shape[0] != 1:
-            raise ValueError(f"Codeword must be a row vector. Got {vector.shape[0]} rows.")
+                 vector: list[int]):
         self.vector = vector
 
     def __len__(self) -> int:
         """ Returns length of the codeword, i.e. the number of columns. """
-        return self.vector.shape[1]
+        return len(self.vector)
 
     def hamming_distance(self, other: "Codeword") -> int:
         """
