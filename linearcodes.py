@@ -29,23 +29,28 @@ class Codeword():
 
 class LinearCode():
     def __init__(self,
-                 generator_matrix: BinaryMatrix | None = None,
-                 parity_check_matrix: BinaryMatrix | None = None):
-        if generator_matrix is None and parity_check_matrix is None:
+                 generators: list[list[int]] | None = None,
+                 parity_checks: list[list[int]] | None = None):
+        # There is an issue here, too many uses of the word generators
+        if generators is None and parity_checks is None:
             raise ValueError("Must provide either a generator or parity check matrix.")
-        if generator_matrix is not None:
-            self.generator_matrix = generator_matrix
-            self.n = generator_matrix.shape[1]
-            self.rank = generator_matrix.rank
-            self.parity_check_matrix = generator_matrix.nullspace
-        if parity_check_matrix is not None:
-            self.parity_check_matrix = parity_check_matrix
-            self.n = parity_check_matrix.shape[1]
-            self.rank = self.n - parity_check_matrix.rank
-            self.generator_matrix = parity_check_matrix.nullspace
+        if generators is not None:
+            self.generator_matrix = BinaryMatrix(generators).rowspan_matrix()
+            self.n = self.generator_matrix.shape[1]
+            self.rank = self.generator_matrix.rank
+            self.parity_check_matrix = self.generator_matrix.nullspace
+        if parity_checks is not None:
+            self.parity_check_matrix = BinaryMatrix(parity_checks).rowspan_matrix()
+            self.n = self.parity_check_matrix.shape[1]
+            self.rank = self.n - self.parity_check_matrix.rank
+            self.generator_matrix = self.parity_check_matrix.nullspace
         
         self.validate_code()
         self.rate: float = self.n / self.rank
+        self.length = self.generator_matrix.shape[1]
+        self.elements = self.generator_matrix.rowspan_elements()
+        self.basis = self.generator_matrix.basis
+
 
     def validate_code(self):
         """
