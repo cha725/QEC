@@ -52,7 +52,7 @@ class BinaryMatrix:
         """
         Compute the reduced row echelon form (RREF) of a matrix.
         """
-        M = BinaryMatrix(self._array.copy())
+        M = BinaryMatrix(self._entries)
         num_rows, num_cols = M.shape
         pivot_coords = []
         start_row = 0
@@ -105,6 +105,7 @@ class BinaryMatrix:
         """
         Return rank of matrix over F2.
         """
+        return len(self._basis)
 
     def num_rowspan_elements(self) -> int:
         """
@@ -151,9 +152,9 @@ class BinaryMatrix:
             basis.append(vec)
         
         if basis:
-            return BinaryMatrix(np.array(basis, dtype=int))
+            return BinaryMatrix(basis)
         else:
-            return BinaryMatrix(np.zeros(self.shape[1], dtype=int))
+            return BinaryMatrix([[0]*self.shape[1]])
 
     def __repr__(self):
         return f"Binary matrix: \n {self.array}."
@@ -162,7 +163,7 @@ class BinaryMatrix:
 
 if __name__ == "__main__":
     
-    M = BinaryMatrix(np.array([[1,0,1,0],[1,0,1,1],[0,1,1,0],[1,0,1,0],[0,0,1,1]]))
+    M = BinaryMatrix([[1,0,1,0],[1,0,1,1],[0,1,1,0],[1,0,1,0],[0,0,1,1]])
 
     print(f"Matrix: {M.array}")
     M.swap_rows(0,1)
@@ -170,12 +171,12 @@ if __name__ == "__main__":
     M.add_rows(1,0)
     print(f"Add row 1 to row 0: {M.array}")
     print(f"RREF: {M.rref.array}")
-    print(f"Generator matrix: {M.generators}")
+    print(f"Generator matrix: {M.basis}")
     print(f"Rank of M = {M.rank}")
     print(f"Nullspace of M: {M.nullspace.array}")
 
 
-    M = BinaryMatrix(np.array([[1,0,1,0],[1,0,1,0],[0,1,1,0],[1,0,1,0],[0,0,1,0]]))
+    M = BinaryMatrix([[1,0,1,0],[1,0,1,0],[0,1,1,0],[1,0,1,0],[0,0,1,0]])
 
     print(f"Matrix: {M.array}")
     M.swap_rows(0,1)
@@ -183,8 +184,7 @@ if __name__ == "__main__":
     M.add_rows(1,0)
     print(f"Add row 1 to row 0: {M.array}")
     print(f"RREF: {M.rref.array}")
-    print(f"Generator matrix: {M.generators}")
+    print(f"Generator matrix: {M.basis}")
     print(f"Rank of M = {M.rank}")
     print(f"Nullspace of M: {M.nullspace.array}")
     
-
