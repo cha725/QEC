@@ -89,7 +89,9 @@ class BinaryMatrix:
         Only keep those rows that have a nonzero entry.
         """
         R = self.rref.array
-        return R[~np.all(R == 0, axis=1),:]
+        bool_basis = R[~np.all(R == 0, axis=1),:]
+        return [row.astype(int) for row in bool_basis]
+        
 
     @property
     def rank(self) -> int:
