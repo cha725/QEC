@@ -105,7 +105,12 @@ class BinaryMatrix:
         """
         Return rank of matrix over F2.
         """
-        return self.generators.shape[0]  
+
+    def num_rowspan_elements(self) -> int:
+        """
+        Return the number of elements in the span of the basis.
+        """ 
+        return 2**self.rank
 
     @cached_property
     def nullspace(self) -> "BinaryMatrix":
