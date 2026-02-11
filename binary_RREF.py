@@ -83,9 +83,9 @@ class BinaryMatrix:
         return self._rref_algorithm[0]
     
     @cached_property
-    def generators(self) -> NDArray[np.bool_]:
+    def _basis(self) -> list[NDArray]:
         """
-        Return basis of row space of binary matrix as a numpy array.
+        Return basis of row space of binary matrix as a list of numpy arrays.
         Only keep those rows that have a nonzero entry.
         """
         R = self.rref.array
