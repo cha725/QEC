@@ -5,9 +5,14 @@ from numpy.typing import NDArray
 class BinaryMatrix:
 
     def __init__(self,
-                 array: NDArray[np.bool_]):
-        self._array = array.copy()
+                 entries: list[list[int]]):
+        self._entries = entries
+        self._array = np.array(self._entries, dtype=int)
         self.shape = self._array.shape
+
+    @property
+    def entries(self) -> list[list[int]]:
+        return self._entries
 
     @property
     def array(self) -> NDArray[np.bool_]:
