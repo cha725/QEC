@@ -6,6 +6,14 @@ from numpy.typing import NDArray
 from binary_RREF import BinaryMatrix
 from CSScodes import CSSStabiliserCode
 
+class Codeword():
+    def __init__(self,
+                 vector: BinaryMatrix):
+        if vector.shape[0] != 1:
+            raise ValueError(f"Codeword must be a row vector. Got {vector.shape[0]} rows.")
+        self.vector = vector
+
+
 class LinearCode():
     def __init__(self,
                  generator_matrix: BinaryMatrix | None = None,
