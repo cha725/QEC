@@ -17,6 +17,15 @@ class Codeword():
         """ Returns length of the codeword, i.e. the number of columns. """
         return self.vector.shape[1]
 
+    def hamming_distance(self, other: "Codeword") -> int:
+        """
+        Returns the Hamming distance between this codeword and another.
+        i.e. the number of entries where the codewords differ.
+        """
+        if len(self) != len(other):
+            raise ValueError(f"{other} is not a codeword in the same code as {self}. Invalid length.")
+        return sum(s_entry ^ o_entry for s_entry in self.vector for o_entry in other.vector)
+
 
 class LinearCode():
     def __init__(self,
