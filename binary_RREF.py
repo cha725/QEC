@@ -1,5 +1,6 @@
 import numpy as np
 from functools import cached_property
+from itertools import product
 from numpy.typing import NDArray
 
 class BinaryMatrix:
