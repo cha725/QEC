@@ -108,6 +108,13 @@ class BinaryMatrix:
         Only keep those rows that have a nonzero entry.
         """
         return [arr.tolist() for arr in self._basis]
+    
+    
+    def rowspan_matrix(self) -> "BinaryMatrix":
+        """
+        Return new BinaryMatrix that is reduced and has the same row span.
+        """
+        return BinaryMatrix(self.basis)
 
     @property
     def rank(self) -> int:
