@@ -92,6 +92,13 @@ class BinaryMatrix:
         bool_basis = R[~np.all(R == 0, axis=1),:]
         return [row.astype(int) for row in bool_basis]
         
+    @cached_property
+    def basis(self) -> list[list[int]]:
+        """
+        Return basis of row space of binary matrix as a list of binary lists.
+        Only keep those rows that have a nonzero entry.
+        """
+        return [arr.tolist() for arr in self._basis]
 
     @property
     def rank(self) -> int:
