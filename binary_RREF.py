@@ -84,6 +84,14 @@ class BinaryMatrix:
         return self._rref_algorithm[0]
     
     @cached_property
+    def generator_matrix(self) -> NDArray:
+        """
+        Return a RREF matrix that has the same rowspan as the binary matrix.
+        """
+        R = self.rref.array
+        return R[~np.all(R == 0, axis=1),:]
+
+    @cached_property
     def _basis(self) -> list[NDArray]:
         """
         Return basis of row space of binary matrix as a list of numpy arrays.
