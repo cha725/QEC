@@ -47,6 +47,7 @@ class LinearCode():
         self.rate: float = self.n / self.rank
         self.length = self.generator_matrix.shape[1]
         self.elements = self.generator_matrix.rowspan_elements()
+        self.codewords = [Codeword(elt) for elt in self.elements]
         self.basis = self.generator_matrix.basis
 
 
