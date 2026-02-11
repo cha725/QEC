@@ -179,26 +179,46 @@ if __name__ == "__main__":
     
     M = BinaryMatrix([[1,0,1,0],[1,0,1,1],[0,1,1,0],[1,0,1,0],[0,0,1,1]])
 
-    print(f"Matrix: {M.array}")
+    print(f"\n=== Matrix: {M.array}")
     M.swap_rows(0,1)
     print(f"Swap rows 0 and 1: {M.array}")
     M.add_rows(1,0)
     print(f"Add row 1 to row 0: {M.array}")
     print(f"RREF: {M.rref.array}")
-    print(f"Generator matrix: {M.basis}")
+    print(f"Generator matrix: {M.generator_matrix}")
     print(f"Rank of M = {M.rank}")
     print(f"Nullspace of M: {M.nullspace.array}")
 
 
     M = BinaryMatrix([[1,0,1,0],[1,0,1,0],[0,1,1,0],[1,0,1,0],[0,0,1,0]])
 
-    print(f"Matrix: {M.array}")
+    print(f"\n=== Matrix: {M.array}")
     M.swap_rows(0,1)
     print(f"Swap rows 0 and 1: {M.array}")
     M.add_rows(1,0)
     print(f"Add row 1 to row 0: {M.array}")
     print(f"RREF: {M.rref.array}")
-    print(f"Generator matrix: {M.basis}")
+    print(f"Generator matrix: {M.generator_matrix}")
     print(f"Rank of M = {M.rank}")
     print(f"Nullspace of M: {M.nullspace.array}")
     
+    M = BinaryMatrix(
+        [[0, 0, 0, 0, 0], 
+         [0, 0, 0, 0, 1], 
+         [0, 0, 0, 1, 0], 
+         [0, 0, 0, 1, 1], 
+         [1, 0, 1, 0, 0], 
+         [1, 0, 1, 0, 1], 
+         [1, 0, 1, 1, 0], 
+         [1, 0, 1, 1, 1]]
+         )
+    
+    print(f"\n=== Matrix: {M.array}")
+    M.swap_rows(0,1)
+    print(f"Swap rows 0 and 1: {M.array}")
+    M.add_rows(1,0)
+    print(f"Add row 1 to row 0: {M.array}")
+    print(f"RREF: {M.rref.array}")
+    print(f"Generator matrix: {M.generator_matrix}")
+    print(f"Rank of M = {M.rank}")
+    print(f"Nullspace of M: {M.nullspace.array}")
