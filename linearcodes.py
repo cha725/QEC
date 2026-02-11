@@ -13,6 +13,10 @@ class Codeword():
             raise ValueError(f"Codeword must be a row vector. Got {vector.shape[0]} rows.")
         self.vector = vector
 
+    def __len__(self) -> int:
+        """ Returns length of the codeword, i.e. the number of columns. """
+        return self.vector.shape[1]
+
 
 class LinearCode():
     def __init__(self,
