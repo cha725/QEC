@@ -6,6 +6,10 @@ class BinaryMatrix:
 
     def __init__(self,
                  entries: list[list[int]]):
+        length = len(entries[0])
+        for entry in entries:
+            if len(entry) != length:
+                raise ValueError(f"All lists in entries must have the same length.")
         self._entries = entries
         self._array = np.array(self._entries, dtype=int)
         self.shape = self._array.shape
