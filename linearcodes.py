@@ -110,6 +110,21 @@ class LinearCode(ABC):
         if any(bit not in (0, 1) for bit in message):
             raise ValueError("Message must contain only 0 or 1 values.")
         return True
+    
+    def send_and_decode_message(self, message: list[int], probs: list[float] | None = None, verbose: bool = False) -> list[int] | tuple[list[int],list[int],list[int]]:
+        """
+        Send and decode message over a noisy channel.
+        If verbose return encoded, received and decoded messages.
+        Else return just decoded message.
+        """
+        encoded = self.encode(message)
+        received = self.transmit_codeword(encoded, probs)
+        decoded = self.decode(received)
+        if verbose:
+            return (encoded, received, decoded)
+        return decoded 
+
+
     def syndrome(self, vec: NDArray):
         """
         Computes syndrome of vector.
