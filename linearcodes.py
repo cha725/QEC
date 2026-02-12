@@ -69,15 +69,18 @@ class LinearCode():
         """
         return [list(entry) for entry in product([0,1], repeat=self.rank)]
 
+    def encode(self, message: list[int]) -> list[int]:
         """
         Encode message using linear code.
         Returns uG where u is the message and G is the generator matrix.
         """
-        if message.shape[1] != self.rank:
+        if len(message) != self.rank:
             raise ValueError(f"Invalid message length. Must have {self.rank} columns.")
-        M = np.matmul(message, self.generator_matrix.array, dtype=bool)
-        return np.array(M, dtype=int)
-    
+        mat_message = np.array(message, dtype=bool)
+        bool_generator_mat = self.generator_matrix.array.astype(bool)
+        bool_encoded = np.matmul(mat_message, bool_generator_mat, dtype=bool)
+        encoded = bool_encoded.astype(int)
+        return encoded.tolist()
     def syndrome(self, vec: NDArray):
         """
         Computes syndrome of vector.
