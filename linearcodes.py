@@ -1,5 +1,6 @@
 import numpy as np
 
+from abc import ABC, abstractmethod
 from collections.abc import Sequence
 from numpy.typing import NDArray
 
@@ -25,7 +26,7 @@ class Codeword():
         return sum(s_entry ^ o_entry for s_entry in self.vector for o_entry in other.vector)
 
 
-class LinearCode():
+class LinearCode(ABC):
     def __init__(self,
                  generators: list[list[int]] | None = None,
                  parity_checks: list[list[int]] | None = None):
@@ -81,6 +82,11 @@ class LinearCode():
         bool_encoded = np.matmul(mat_message, bool_generator_mat, dtype=bool)
         encoded = bool_encoded.astype(int)
         return encoded.tolist()
+    
+    @abstractmethod
+    def decode(self, message: list[int]) -> list[int]:
+        """ Method to decode a received message. To be implemented in subclasses. """
+        pass
     def syndrome(self, vec: NDArray):
         """
         Computes syndrome of vector.
