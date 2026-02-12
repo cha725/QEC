@@ -220,6 +220,12 @@ class LDPC(LinearCode):
                     G.add_edge(bit_idx, self.length + pc_idx)
         return G
     
+    def draw_graph(self, title: str = "LDPC Bipartite Graph", bits_colour: str = "skyblue", pc_colour: str = "lightgreen"):
+        pos = nx.bipartite_layout(G, nodes=range(self.length))
+        nx.draw(G, pos, with_labels=True, node_color=[bits_colour]*self.length + [pc_colour]*self.num_parity_checks)
+        plt.title(title)
+        plt.show()
+
 if __name__ == "__main__":
 
     class Examples:
