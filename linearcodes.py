@@ -210,6 +210,16 @@ class LDPC(LinearCode):
         self.parity_checks = self.parity_check_matrix.basis
         self.num_parity_checks = len(self.parity_checks)
 
+    def graph(self) -> nx.Graph:
+        G = nx.Graph()
+        G.add_nodes_from(range(self.length), bipartite = 0)
+        G.add_nodes_from(range(self.length, self.num_parity_checks), bipartite = 1)
+        for pc_idx, parity_check in enumerate(self.parity_checks):
+            for bit_idx, bit in enumerate(parity_check):
+                if bit == 1:
+                    G.add_edge(bit_idx, self.length + pc_idx)
+        return G
+    
 if __name__ == "__main__":
 
     class Examples:
