@@ -87,6 +87,17 @@ class LinearCode(ABC):
     def decode(self, message: list[int]) -> list[int]:
         """ Method to decode a received message. To be implemented in subclasses. """
         pass
+    
+    def transmit_codeword(self, message: list[int], probs: list[float] | None = None) -> list[int]:
+        if probs is None:
+            probs = [0.]*self.length
+        received_message = []
+        for bit, p in zip(message, probs):
+            if np.random.rand() < p:
+                received_message.append(1 - bit)
+            else:
+                received_message.append(bit)
+        return received_message
     def syndrome(self, vec: NDArray):
         """
         Computes syndrome of vector.
