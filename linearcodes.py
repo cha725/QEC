@@ -98,6 +98,18 @@ class LinearCode(ABC):
             else:
                 received_message.append(bit)
         return received_message
+    
+    def _is_valid_received_message(self, message: list[int]) -> bool:
+        """
+        Validate received message length and entries.
+        """
+        if not isinstance(message, list):
+            raise ValueError("Message must be a list.")
+        if len(message) != self.length:
+            raise ValueError(f"Message length must be {self.length}.")
+        if any(bit not in (0, 1) for bit in message):
+            raise ValueError("Message must contain only 0 or 1 values.")
+        return True
     def syndrome(self, vec: NDArray):
         """
         Computes syndrome of vector.
