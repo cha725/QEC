@@ -63,7 +63,12 @@ class LinearCode():
         if not np.all(M % 2 == 0):
             raise ValueError("Generator and parity check matrices are not orthogonal.")
 
-    def encode(self, message: NDArray):
+    def message_space(self) -> list[list[int]]:
+        """
+        Return the list of valid messages to be encoded.
+        """
+        return [list(entry) for entry in product([0,1], repeat=self.rank)]
+
         """
         Encode message using linear code.
         Returns uG where u is the message and G is the generator matrix.
