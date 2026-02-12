@@ -156,8 +156,17 @@ class RepetitionCode(LinearCode):
     """
     def __init__(self,
                  codeword_length: int):
-        B = BinaryMatrix(np.array([[1 for _ in range(codeword_length)]]))
-        super().__init__(B)
+        if (codeword_length % 2) != 1:
+            raise ValueError(f"Repetition code must have odd codeword length. Got {codeword_length}.")
+        super().__init__([[1]*codeword_length])
+
+
+    def decode(self, message: list[int]) -> list[int]:
+        """
+        For a repetition code the decoder is majority value.
+        """
+        self._is_valid_received_message(message)
+        return [int(sum(message) > self.length // 2)]
 
 
 class HammingCode(LinearCode):
