@@ -198,6 +198,18 @@ class HammingCode(LinearCode):
         self.generator_matrix = self.dual_code.parity_check_matrix
         super().__init__(BinaryMatrix(self.generator_matrix.array))
 
+
+class LDPC(LinearCode):
+    """ 
+    Represents a LDPC code.
+    parity_checks: list of binary strings which represent the parity check equations.
+    """
+    def __init__(self,
+                 parity_checks: list[list[int]]):
+        super().__init__(parity_checks=parity_checks)
+        self.parity_checks = self.parity_check_matrix.basis
+        self.num_parity_checks = len(self.parity_checks)
+
 if __name__ == "__main__":
 
     class Examples:
