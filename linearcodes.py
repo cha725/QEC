@@ -228,6 +228,32 @@ class LDPC(LinearCode):
         plt.title(title)
         plt.show()
 
+    
+        
+import random
+
+class RandomLDPC(LDPC):
+    """
+    Create an LDPC code for a given number of bits and parity check equations.
+    """
+    def __init__(self,
+                 num_bits: int,
+                 num_parity_checks: int,
+                 parity_check_weights: list[int]):
+        self.num_bits = num_bits
+        self.num_parity_checks = num_parity_checks
+        self.parity_check_weights = parity_check_weights
+        self.parity_checks = self._create_random_parity_checks()
+        super().__init__(self.parity_checks)
+    
+    def _create_random_parity_checks(self):
+        parity_check_matrix = np.zeros((self.num_parity_checks, self.num_bits), dtype=int)
+        for row_idx in range(self.num_parity_checks):
+            weight = np.random.choice(self.parity_check_weights)
+            col_idx = np.random.choice(self.num_bits, size=weight, replace=False)
+            parity_check_matrix[row_idx, col_idx] = 1
+        return parity_check_matrix.tolist()
+
 if __name__ == "__main__":
 
     class Examples:
