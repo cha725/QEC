@@ -3,6 +3,7 @@ import networkx as nx
 
 from abc import ABC, abstractmethod
 from collections.abc import Sequence
+from itertools import product
 from numpy.typing import NDArray
 
 from binary_RREF import BinaryMatrix
