@@ -1,4 +1,5 @@
 import numpy as np
+import networkx as nx
 
 from abc import ABC, abstractmethod
 from collections.abc import Sequence
@@ -221,8 +222,8 @@ class LDPC(LinearCode):
         return G
     
     def draw_graph(self, title: str = "LDPC Bipartite Graph", bits_colour: str = "skyblue", pc_colour: str = "lightgreen"):
-        pos = nx.bipartite_layout(G, nodes=range(self.length))
-        nx.draw(G, pos, with_labels=True, node_color=[bits_colour]*self.length + [pc_colour]*self.num_parity_checks)
+        pos = nx.bipartite_layout(self.graph(), nodes=range(self.length))
+        nx.draw(self.graph(), pos, with_labels=True, node_color=[bits_colour]*self.length + [pc_colour]*self.num_parity_checks)
         plt.title(title)
         plt.show()
 
