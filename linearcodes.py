@@ -208,10 +208,16 @@ class LDPC(LinearCode):
     parity_checks: list of binary strings which represent the parity check equations.
     """
     def __init__(self,
-                 parity_checks: list[list[int]]):
+                 parity_checks: list[list[int]],
+                 bit_flip_probs: list[float] | None = None):
         super().__init__(parity_checks=parity_checks)
         self.parity_checks = self.parity_check_matrix.basis
         self.num_parity_checks = len(self.parity_checks)
+        if bit_flip_probs is None:
+            bit_flip_probs = [np.random.uniform(0.1,0.3) for _ in range(self.length)]
+        if len(bit_flip_probs) != self.length:
+            raise ValueError(f"Received {len(bit_flip_probs)} bit-flip probabilities. Need {self.length}.")
+        self.bit_flip_probs = bit_flip_probs
 
     def graph(self) -> nx.Graph:
         G = nx.Graph()
