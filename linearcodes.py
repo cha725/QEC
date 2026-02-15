@@ -221,8 +221,9 @@ class LDPC(LinearCode):
 
     def graph(self) -> nx.Graph:
         G = nx.Graph()
-        G.add_nodes_from(range(self.length), bipartite = 0)
-        G.add_nodes_from(range(self.length, self.num_parity_checks), bipartite = 1)
+        for bit_idx, bit_flip_prob in enumerate(self.bit_flip_probs):
+            G.add_node(bit_idx, bipartite=0, bit_flip_prob=bit_flip_prob)
+        G.add_nodes_from(range(self.length, self.num_parity_checks), bipartite=1)
         for pc_idx, parity_check in enumerate(self.parity_checks):
             for bit_idx, bit in enumerate(parity_check):
                 if bit == 1:
