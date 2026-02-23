@@ -11,13 +11,16 @@ from binary_RREF import BinaryMatrix
 from CSScodes import CSSStabiliserCode
 
 class Codeword():
+    """
+    Represents a codeword in a linear code.
+    """
     def __init__(self,
-                 vector: list[int]):
-        self.vector = vector
+                 bits: list[int]):
+        self.bits = bits
 
     def __len__(self) -> int:
         """ Returns length of the codeword, i.e. the number of columns. """
-        return len(self.vector)
+        return len(self.bits)
 
     def hamming_distance(self, other: "Codeword") -> int:
         """
@@ -25,8 +28,8 @@ class Codeword():
         i.e. the number of entries where the codewords differ.
         """
         if len(self) != len(other):
-            raise ValueError(f"{other} is not a codeword in the same code as {self}. Invalid length.")
-        return sum(s_entry ^ o_entry for s_entry in self.vector for o_entry in other.vector)
+    def __repr__(self):
+        return f"Codeword({self.bits})"
 
 
 class LinearCode(ABC):
