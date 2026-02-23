@@ -28,6 +28,9 @@ class Codeword():
         i.e. the number of entries where the codewords differ.
         """
         if len(self) != len(other):
+            raise ValueError(f"{other} is not in the same code as {self}. Invalid length.")
+        return sum(b1 ^ b2 for b1, b2 in zip(self.bits, other.bits))
+    
     def __repr__(self):
         return f"Codeword({self.bits})"
 
