@@ -42,23 +42,24 @@ class LinearCode(ABC):
         # There is an issue here, too many uses of the word generators
         if generators is None and parity_checks is None:
             raise ValueError("Must provide either a generator or parity check matrix.")
+        
         if generators is not None:
             self.generator_matrix = BinaryMatrix(generators).rowspan_matrix()
-            self.n = self.generator_matrix.shape[1]
+            self.code_length = self.generator_matrix.shape[1]
             self.rank = self.generator_matrix.rank
             self.parity_check_matrix = self.generator_matrix.nullspace
         if parity_checks is not None:
             self.parity_check_matrix = BinaryMatrix(parity_checks).rowspan_matrix()
-            self.n = self.parity_check_matrix.shape[1]
-            self.rank = self.n - self.parity_check_matrix.rank
+            self.code_length = self.parity_check_matrix.shape[1]
+            self.rank = self.code_length - self.parity_check_matrix.rank
             self.generator_matrix = self.parity_check_matrix.nullspace
         
         self.validate_code()
-        self.rate: float = self.n / self.rank
+        self.rate: float = self.rank / self.code_length
         self.length = self.generator_matrix.shape[1]
-        self.elements = self.generator_matrix.rowspan_elements()
-        self.codewords = [Codeword(elt) for elt in self.elements]
-        self.basis = self.generator_matrix.basis
+        self.codewords = [Codeword(bits) for bits in self.generator_matrix.rowspan_elements()]
+        self.num_parity_checks = self.parity_check_matrix.rank
+        self.parity_check_eqns = self.parity_check_matrix.basis
 
 
     def validate_code(self):
