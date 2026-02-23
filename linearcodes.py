@@ -205,6 +205,14 @@ class HammingCode(LinearCode):
         pc = np.array(parity_check_cols).T
         super().__init__(parity_checks=pc.tolist())
 
+    def decode(self, received: list[int]) -> list[int]:
+        syndrome = self.syndrome(received)
+        idx = int("".join(map(str, syndrome[::-1])), 2)
+        corrected = received.copy()
+        if idx != 0:
+            corrected[idx - 1] ^= 1
+        return corrected
+
 
 class LDPC(LinearCode):
     """ 
