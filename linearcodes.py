@@ -3,7 +3,6 @@ import numpy as np
 import networkx as nx
 
 from abc import ABC, abstractmethod
-from collections.abc import Sequence
 from itertools import product
 from numpy.typing import NDArray
 
@@ -86,63 +85,52 @@ class LinearCode(ABC):
         Returns uG where u is the message and G is the generator matrix.
         """
         if len(message) != self.rank:
-            raise ValueError(f"Invalid message length. Must have {self.rank} columns.")
+            raise ValueError(f"Message must have length {self.rank}.")
         mat_message = np.array(message, dtype=bool)
         bool_generator_mat = self.generator_matrix.array.astype(bool)
         bool_encoded = np.matmul(mat_message, bool_generator_mat, dtype=bool)
         encoded = bool_encoded.astype(int)
         return encoded.tolist()
     
-    @abstractmethod
     def decode(self, message: list[int]) -> list[int]:
         """ Method to decode a received message. To be implemented in subclasses. """
-        pass
+        return []
     
-    def transmit_codeword(self, message: list[int], probs: list[float] | None = None) -> list[int]:
-        if probs is None:
-            probs = [0.]*self.length
+    def transmit_codeword(self, codeword: list[int], flip_probabilities: list[float] | None = None) -> list[int]:
+        """
+        Transmit codeword over a noisy channel with given bit flip probabilities.
+        """
+        if flip_probabilities is None:
+            flip_probabilities = [0.1]*self.length
         received_message = []
-        for bit, p in zip(message, probs):
+        for bit, p in zip(codeword, flip_probabilities):
             if np.random.rand() < p:
                 received_message.append(1 - bit)
             else:
                 received_message.append(bit)
         return received_message
     
-    def _is_valid_received_message(self, message: list[int]) -> bool:
+    def send_and_decode_message(self, codeword: list[int], flip_probabilities: list[float] | None = None, verbose: bool = False) -> list[int] | tuple[list[int],list[int],list[int]]:
         """
-        Validate received message length and entries.
-        """
-        if not isinstance(message, list):
-            raise ValueError("Message must be a list.")
-        if len(message) != self.length:
-            raise ValueError(f"Message length must be {self.length}.")
-        if any(bit not in (0, 1) for bit in message):
-            raise ValueError("Message must contain only 0 or 1 values.")
-        return True
-    
-    def send_and_decode_message(self, message: list[int], probs: list[float] | None = None, verbose: bool = False) -> list[int] | tuple[list[int],list[int],list[int]]:
-        """
-        Send and decode message over a noisy channel.
+        Send a codeword and decode received message over a noisy channel.
         If verbose return encoded, received and decoded messages.
         Else return just decoded message.
         """
-        encoded = self.encode(message)
-        received = self.transmit_codeword(encoded, probs)
+        encoded = self.encode(codeword)
+        received = self.transmit_codeword(encoded, flip_probabilities)
         decoded = self.decode(received)
         if verbose:
             return (encoded, received, decoded)
         return decoded 
 
-
-    def syndrome(self, vec: NDArray):
+    def syndrome(self, vector: NDArray):
         """
         Computes syndrome of vector.
         Returns Hv^T where v is the vector and H is the parity check matrix.
         """
-        if vec.shape != [1, self.n]:
-            raise ValueError(f"Invalid vector size. Must be [1,{self.n}].")
-        M = np.matmul(vec.T, self.parity_check_matrix.array, dtype=bool)
+        if vector.shape != [1, self.code_length]:
+            raise ValueError(f"Invalid vector size. Must be [1,{self.code_length}].")
+        M = np.matmul(vector.T, self.parity_check_matrix.array, dtype=bool)
         return np.array(M, dtype=int)
 
     def css_code_from_linear(self):
@@ -158,8 +146,7 @@ class LinearCode(ABC):
 class RepetitionCode(LinearCode):
     """
     Represents a repetition code as a subclass of LinearCode.
-
-    A repetition code is the code with two codewords 0 and 1.
+    Uses majority vote for decoding.
 
     Attribute:
         - codeword_length (int): Length of the codeword.
