@@ -194,19 +194,16 @@ class HammingCode(LinearCode):
         - num_pc_rows (int): number of rows in the parity check matrix.
     """
     def __init__(self,
-                 num_pc_rows: int):
-        self.num_pc_rows = num_pc_rows
-        self.num_pc_cols = 2**num_pc_rows-1
+                 num_parity_check_eqns: int):
+        self.num_parity_check_eqns = num_parity_check_eqns
+        num_parity_check_cols = 2**num_parity_check_eqns-1
 
         parity_check_cols = []
-        for num in range(1, self.num_pc_cols + 1):
-            bin_vec = [(num >> idx) & 1 for idx in range(self.num_pc_rows)]
-            parity_check_cols.insert(0, np.array(bin_vec))
-        H = BinaryMatrix(np.array(parity_check_cols).T)
-        self.dual_code = LinearCode(H)
-        self.parity_check = self.dual_code.generator_matrix
-        self.generator_matrix = self.dual_code.parity_check_matrix
-        super().__init__(BinaryMatrix(self.generator_matrix.array))
+        for val in range(1, num_parity_check_cols + 1):
+            bits = [(val >> idx) & 1 for idx in range(num_parity_check_eqns)]
+            parity_check_cols.insert(0, np.array(bits))
+        pc = np.array(parity_check_cols).T
+        super().__init__(parity_checks=pc.tolist())
 
 
 class LDPC(LinearCode):
