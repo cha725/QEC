@@ -91,11 +91,11 @@ class MessagePassingTree:
         for u, v in self.directed_edges:
             new_vertex_values[v] += messages[(u,v)]
         return new_vertex_values
-    
 
-mp = MessagePassingTree(num_vertices=1000)
-
-final_info = mp.run(1000)
-print("Final vertex information:", final_info)
-        
+def find_number_vertices_in_random_tree(max_num_vertices: int = 50, num_iterations: int = 100):
+    num_vertices = random.choice(range(max_num_vertices))
+    graph = nx.generators.random_labeled_tree(num_vertices)
+    mp = MessagePassing(graph)
+    final_info = mp.run(num_iterations)
+    return (final_info[0], final_info[1][0])        
     
