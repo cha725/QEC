@@ -11,20 +11,20 @@ class MessagePassingTree:
             If not given, then defaults to 1 for all vertices.
     """
     def __init__(self,
-                 num_vertices: int,
+                 graph: nx.Graph,
                  initial_vertex_values: list[int] | None = None):
-        
+        self.graph = graph
+        self.num_vertices = len(graph.nodes)  
+
         if initial_vertex_values is None:
-            initial_vertex_values = [1]*num_vertices
-        if len(initial_vertex_values) != num_vertices:
+            initial_vertex_values = [1]*self.num_vertices
+        if len(initial_vertex_values) != self.num_vertices:
             raise ValueError("Length of initial_vertex_values must match num_vertices.")
         
-        self.num_vertices = num_vertices
-        self.tree = nx.generators.random_labeled_tree(num_vertices)
-        self.neighbours = [list(self.tree.neighbors(u)) for u in self.tree.nodes]
+        self.neighbours = [list(self.graph.neighbors(u)) for u in self.graph.nodes]
         self.initial_vertex_values = initial_vertex_values
         
-        self.directed_edges = [(u, v) for u in self.tree.nodes for v in self.tree.neighbors(u)]
+        self.directed_edges = [(u, v) for u in self.graph.nodes for v in self.graph.neighbors(u)]
         
     @property
     def initial_messages(self) -> dict[tuple[int,int],int]:
