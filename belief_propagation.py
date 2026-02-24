@@ -34,7 +34,7 @@ class MessagePassingTree:
         """
         return {edge : self.initial_vertex_values[edge[0]] for edge in self.directed_edges}
 
-    def run(self, max_interations: int = 100, verbose: bool = False) -> list[int]:
+    def run(self, max_interations: int = 100, verbose: bool = False) -> tuple[int,list[int]]:
         """
         Run message passing until convergence or max_iterations reached.
         
@@ -48,21 +48,21 @@ class MessagePassingTree:
         vertex_values = self.initial_vertex_values
         messages = self.initial_messages.copy()
         for iteration in range(max_interations):
-            new_vertex_values = self._update_vertex_values(vertex_values, messages)
+            vertex_values = self._update_vertex_values(vertex_values, messages)
             
-            if new_vertex_values == vertex_values:
-                print(f"Converged at iteration {iteration+1}.")
-                return vertex_values
-            
-            vertex_values = new_vertex_values
-            messages = self._update_messages(messages)
+            new_messages = self._update_messages(messages)
+            if all(value == 0 for value in new_messages.values()):
+                    if verbose:
+                        print(f"Converged at iteration {iteration+1}.")
+                    return (iteration, vertex_values)
+            messages = new_messages
 
             if verbose:
                 print(f"\nIteration {iteration+1}")
                 print(f"Messages: {messages}")
                 print(f"Vertex values: {vertex_values}")
 
-        return vertex_values
+        return (iteration,vertex_values)
 
     def _update_messages(self,
                         messages: dict[tuple[int,int], int]) -> dict[tuple[int,int], int]:
