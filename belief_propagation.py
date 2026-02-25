@@ -179,6 +179,22 @@ class BeliefPropagation:
                 check_to_bit_messages[(check_vertex, bit_vertex)] = 0.0
         return bit_to_check_messages, check_to_bit_messages
 
+    def initialise_bit_state(self,
+                             received_message: list[int], 
+                             channel_probabilities: list[float]):
+        """
+        Returns dictionary with keys given by the bit vertices and whose values are
+        P(bit = received_message given c=0).
+        """
+        initial_bit_state = {}
+        for bit_idx, bit in enumerate(self.bit_vertices):
+            p = channel_probabilities[bit_idx]
+            if received_message[bit_idx] == 0:
+                initial_bit_state[bit] = 1-p
+            else:
+                initial_bit_state[bit] = p
+        return initial_bit_state
+
     def select_check_vertex(self):
         """
         Select the next check vertex to consider. Currently just selects randomly.
