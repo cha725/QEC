@@ -201,25 +201,13 @@ class BeliefPropagation:
                 initial_bit_state[bit] = p
         return initial_bit_state
 
-    def select_check_vertex(self):
+    def select_check_vertex(self, previous_vertex = None):
         """
         Select the next check vertex to consider. Currently just selects randomly.
         TODO: implement an algorithm to do this.
         """
-        return random.choice(self.check_vertices)
-
-    def get_bit_state(self, check_vertex, bit_state: dict):
-        """
-        Get bit state from all bits connected to this check vertex.
-        """
-        neighbour_bit_states = {}
-        for bit in self.check_neighbourhood[check_vertex]:
-            neighbour_bit_states[bit] = bit_state[bit]
-        return neighbour_bit_states
-
-    def compute_check_update(self, neighbour_bit_states: dict) -> dict:
-        check_to_bit_messages = {}
-        neighbour_bits = list(neighbour_bit_states.keys())
+        candidate_vertices = [v for v in self.check_vertices if v != previous_vertex]
+        return random.choice(candidate_vertices)
         for target_bit in neighbour_bits:
             other_bits = [bit for bit in neighbour_bits if bit != target_bit]
             check_to_bit_messages[target_bit] = self._sum_probs_over_bits(other_bits, neighbour_bit_states)
