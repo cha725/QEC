@@ -221,29 +221,21 @@ class BeliefPropagation:
             check_to_bit_messages[check_vertex][target_bit] = 0.5*(1 - prod)
         return check_to_bit_messages
 
-    def _sum_probs_over_bits(self, other_bits: list, bit_states: dict) -> float:
-        """
-        Computes the probability the target bit is 0 or 1 by summing over
-        all possible vectors such that they are 0 or 1 respectively with the parity
-        check. Returns the normalised probability that target bit is 0.
-        """
-        prob_target_0 = 0.0
-        prob_target_1 = 0.0
-        for vector in product([0,1], repeat=len(other_bits)):
-            vector_prob = 1.0
-            for bit, value in zip(other_bits, vector):
-                prob_bit_0 = bit_states[bit]
-                if value == 0:
-                    vector_prob *= prob_bit_0
-                else:
-                    vector_prob *= 1-prob_bit_0
-            parity = (sum(vector) % 2)
-            if parity == 0:
-                prob_target_0 += vector_prob
-            else:
-                prob_target_1 += vector_prob
-        norm = prob_target_0 + prob_target_1
-        return prob_target_0/norm
+    def update_bit_to_check_messages(self, check_vertex, initial_bit_states: dict, check_to_bit_messages: dict):        
+        for bit in self.bit_vertices:
+            bit_neighbourhood = self.bit_neighbourhood[bit]
+            for target_check in bit_neighbourhood:
+                prod_0 = 1.0
+                prod_1 = 1.0
+                for other_check in bit_neighbourhood:
+                    if other_check == target_check:
+                        continue
+                    c = check_to_bit_messages[other_check][bit]
+                    prod_0 *= c
+                    prod_1 *= 1 - c
+                p_bit = initial_bit_states[bit]
+                bit_to_check_messages[bit][target_check] = (p_bit * prod_0) / (p_bit * prod_0 + (1-p_bit) * prod_1)
+        return bit_to_check_messages
 
 
 # Repetition code parity check
