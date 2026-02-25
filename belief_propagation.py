@@ -171,18 +171,18 @@ class BeliefPropagation:
             check_update = self.compute_check_update(check_vertex, bit_to_check_messages)
             self.apply_bit_update(check_vertex, check_update, bit_state)
 
-    def initialise_messages(self, bit_state: dict):
+    def initialise_messages(self, initial_bit_state: dict):
         """
         Create dictionaries to hold the messages to and from bit and check vertices.
         Initialise bit to check as P(mi given ci=0).
         Initialise check to bit as 0.0.
         """
-        bit_to_check_messages = {}
-        check_to_bit_messages = {}
+        bit_to_check_messages = {bit : {} for bit in self.bit_vertices}
+        check_to_bit_messages = {check : {} for check in self.check_vertices}
         for check_vertex, bit_neighbours in self.check_neighbourhood.items():
             for bit_vertex in bit_neighbours:
-                bit_to_check_messages[(bit_vertex, check_vertex)] = bit_state[bit_vertex]
-                check_to_bit_messages[(check_vertex, bit_vertex)] = 0.0
+                bit_to_check_messages[bit_vertex][check_vertex] = initial_bit_state[bit_vertex]
+                check_to_bit_messages[check_vertex][bit_vertex] = 0.0
         return bit_to_check_messages, check_to_bit_messages
 
     def initialise_bit_state(self,
