@@ -110,11 +110,17 @@ class BeliefPropagation:
     def __init__(self,
                  edge_set: list):
         self.edge_set = edge_set
+
         vertex_info = self._initialise_vertices()
         self.check_vertices = vertex_info["check_vertices"]
         self.bit_vertices = vertex_info["bit_vertices"]
         self.check_neighbourhood = vertex_info["check_neighbourhood"]
         self.bit_neighbourhood = vertex_info["bit_neighbourhood"]
+
+        self.code_length = len(self.bit_vertices)
+        self.num_parity_check_eqns = len(self.check_vertices)
+        self.code_rank = self.code_length - self.num_parity_check_eqns
+        
         self.graph = self._create_bipartite_graph()
 
     def _initialise_vertices(self) -> dict:
