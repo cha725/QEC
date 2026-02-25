@@ -236,6 +236,22 @@ class BeliefPropagation:
                 p_bit = initial_bit_states[bit]
                 bit_to_check_messages[bit][target_check] = (p_bit * prod_0) / (p_bit * prod_0 + (1-p_bit) * prod_1)
         return bit_to_check_messages
+    
+    def compute_marginals(self, initial_bit_states: dict, check_to_bit_messages: dict):
+        marginals = {bit : 0.0 for bit in self.bit_vertices}
+        for bit in self.bit_vertices:
+            bit_neighbourhood = self.bit_neighbourhood[bit]
+            prod_0 = 1.0
+            prod_1 = 1.0
+            for check in bit_neighbourhood:
+                c = check_to_bit_messages[check][bit]
+                prod_0 *= c
+                prod_1 *= 1-c
+            p_bit = initial_bit_states[bit]
+            marginals[bit] = (p_bit * prod_0) / (p_bit * prod_0 + (1-p_bit) * prod_1)
+        return marginals
+
+
 
 
 # Repetition code parity check
