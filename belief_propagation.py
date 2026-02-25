@@ -1,4 +1,6 @@
 import networkx as nx
+import random
+from collections import defaultdict
 
 class MessagePassingTree:
     """
