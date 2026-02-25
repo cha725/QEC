@@ -211,7 +211,14 @@ class BeliefPropagation:
             neighbour_bit_states[bit] = bit_state[bit]
         return neighbour_bit_states
 
-    def compute_check_update(self, check_node, incoming):
+    def compute_check_update(self, neighbour_bit_states: dict) -> dict:
+        check_to_bit_messages = {}
+        neighbour_bits = list(neighbour_bit_states.keys())
+        for target_bit in neighbour_bits:
+            other_bits = [bit for bit in neighbour_bits if bit != target_bit]
+            check_to_bit_messages[target_bit] = self._sum_probs_over_bits(other_bits, neighbour_bit_states)
+        return check_to_bit_messages
+
         pass
 
 
