@@ -222,7 +222,7 @@ class BeliefPropagation:
             check_to_bit_messages[check_vertex][target_bit] = 0.5*(1 - prod)
         return check_to_bit_messages
 
-    def update_bit_to_check_messages(self, check_vertex, initial_bit_states: dict, check_to_bit_messages: dict):        
+    def update_bit_to_check_messages(self, initial_bit_states: dict, check_to_bit_messages: dict):        
         for bit in self.bit_vertices:
             bit_neighbourhood = self.bit_neighbourhood[bit]
             for target_check in bit_neighbourhood:
