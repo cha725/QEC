@@ -110,20 +110,19 @@ class BeliefPropagation:
     and the bit vertices will be the targets of the edges.
     """
     def __init__(self,
-                 edge_set: list):
-        self.edge_set = edge_set
+                 code: LinearCode):
+        self.code = code
+        self.graph = self.code.graph        
 
-        vertex_info = self._initialise_vertices()
-        self.check_vertices = vertex_info["check_vertices"]
-        self.bit_vertices = vertex_info["bit_vertices"]
-        self.check_neighbourhood = vertex_info["check_neighbourhood"]
-        self.bit_neighbourhood = vertex_info["bit_neighbourhood"]
+        self.check_vertices: list = [v for v, d in self.graph.nodes(data=True) if d.get('bipartite') == 'check']
+        self.bit_vertices: list = [v for v, d in self.graph.nodes(data=True) if d.get('bipartite') == 'bit']
+        self.check_neighbourhood: dict = {v : list(self.graph.neighbors(v)) for v in self.check_vertices}
+        self.bit_neighbourhood: dict = {v : list(self.graph.neighbors(v)) for v in self.bit_vertices}
 
         self.code_length = len(self.bit_vertices)
         self.num_parity_check_eqns = len(self.check_vertices)
         self.code_rank = self.code_length - self.num_parity_check_eqns
         
-        self.graph = self._create_bipartite_graph()
 
     def _initialise_vertices(self) -> dict:
         """
