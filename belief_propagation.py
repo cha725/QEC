@@ -150,3 +150,33 @@ class BeliefPropagation:
         graph.add_edges_from(self.edge_set)
         return graph
         
+    def run(self, channel_probabilities: list[float], max_iterations: int = 100):
+        messages = self.initialise_messages()
+        bit_state = self.initialise_bit_state(channel_probabilities)
+
+        for _ in range(max_iterations):
+            check_vertex = self.select_check_vertex()
+            if check_vertex is None:
+                break
+            bit_state = self.get_bit_state(check_node, bit_state, messages)
+            check_update = self.compute_check_update(check_node, incoming)
+            self.apply_bit_update(check_node, check_update, bit_state, messages)
+
+    def initialise_messages(self):
+        pass
+
+    def initialise_bit_state(self, channel_probabilities):
+        pass
+
+    def select_check_vertex(self):
+        pass
+
+    def get_bit_state(self, check_node, bit_state, messages):
+        pass
+
+    def compute_check_update(self, check_node, incoming):
+        pass
+
+    def apply_bit_update(self, check_node, check_update, bit_state, messages):
+        pass
+
