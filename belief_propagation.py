@@ -236,6 +236,12 @@ bit_state = bp.initialise_bit_state(received_message, channel_probabilities)
 print("Initial bit state:", bit_state)
 
 
+bit_to_check_messages, check_to_bit_messages = bp.initialise_messages(bit_state)
+# Should be {(0,a):0.75, (1,a):0.25, (1,b):0.25, (2,b):0.75}
+print("Bit to check messages:", bit_to_check_messages)
+# Should be {(a,0):0, (a,1):0, (b,1):0, (b,2):0}
+print("Check to bit messages:", check_to_bit_messages)
+
 random_check = bp.select_check_vertex()
 print("Randomly selected check vertex:", random_check)
 
