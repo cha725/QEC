@@ -235,3 +235,15 @@ bit_state = bp.initialise_bit_state(received_message, channel_probabilities)
 # m=010, should be: 0.75, 0.25, 0.75 
 print("Initial bit state:", bit_state)
 
+
+random_check = bp.select_check_vertex()
+print("Randomly selected check vertex:", random_check)
+
+# Set a vertex for the rest of the time to check the rest of the methods correctly
+
+random_check = 'a'
+
+neighbour_state = bp.get_bit_state(random_check, bit_state)
+# Should be {0:0.75, 1:0.25}
+print(f"Neighbouring bit states of check {random_check}:", neighbour_state)
+
