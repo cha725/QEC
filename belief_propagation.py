@@ -124,39 +124,6 @@ class BeliefPropagation:
         self.code_rank = self.code_length - self.num_parity_check_eqns
         
 
-    def _initialise_vertices(self) -> dict:
-        """
-        Create check and bit vertex lists from edge set.
-        Also create dictionaries to store neighbourhoods of each vertex.
-        """
-        check_vertices = set()
-        bit_vertices = set()
-        check_neighbourhood = defaultdict(set)
-        bit_neighbourhood = defaultdict(set)
-
-        for source, target in self.edge_set:
-            check_vertices.add(source)
-            bit_vertices.add(target)
-            check_neighbourhood[source].add(target)
-            bit_neighbourhood[target].add(source)
-
-        return {"check_vertices": list(check_vertices),
-                "bit_vertices": list(bit_vertices),
-                "check_neighbourhood": dict(check_neighbourhood),
-                "bit_neighbourhood": dict(bit_neighbourhood),}
-
-    def _create_bipartite_graph(self):
-        """
-        Create NetworkX bipartite graph. 
-        Check vertices have the bipartite label 'check',
-        bit vertices havd the bipartite label 'bit'.
-        """
-        graph = nx.Graph()
-        graph.add_nodes_from(self.check_vertices, bipartite='check')
-        graph.add_nodes_from(self.bit_vertices, bipartite='bit')
-        graph.add_edges_from(self.edge_set)
-        return graph
-        
     def run(self, 
             received_message: dict,
             channel_probabilities: dict, 
