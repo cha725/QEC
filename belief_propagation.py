@@ -270,9 +270,24 @@ class BPExample:
             print(f"Check {check}: { {bit: f'{val:.3f}' for bit, val in bits.items()} }")
             
     def run_bp(self):
-        print("\nRunning Belief Propagation...")
+        print("\nRunning Belief Propagation.")
         marginals = self.bp.run(self.message, self.channel_probabilities)
         print("\nFinal bit marginals:")
         for bit, prob in marginals.items():
             print(f"Bit {bit}: {prob:.3f}")
         return marginals
+
+
+if __name__ == "__main__":
+
+    from linearcodes import RepetitionCode, RandomLDPC
+
+    code = RandomLDPC(7, 3, [2])
+    example = BPExample(code)
+    example.print_setup()
+    marginals = example.run_bp()
+
+    code = RepetitionCode(3)
+    example = BPExample(code)
+    example.print_setup()
+    example.run_bp()
