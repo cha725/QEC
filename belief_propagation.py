@@ -157,19 +157,20 @@ class BeliefPropagation:
         return graph
         
     def run(self, 
-            received_message: list[int],
-            channel_probabilities: list[float], 
+            received_message: dict,
+            channel_probabilities: dict, 
             max_iterations: int = 100):
-        bit_state = self.initialise_bit_state(received_message, channel_probabilities)
-        bit_to_check_messages, check_to_bit_messages = self.initialise_messages(bit_state)
-
+        initial_bit_states = self.initialise_bit_state(received_message, channel_probabilities)
+        bit_to_check_messages, check_to_bit_messages = self.initialise_messages(initial_bit_states)
+        previous_vertex = None
         for _ in range(max_iterations):
-            check_vertex = self.select_check_vertex()
+            check_vertex = self.select_check_vertex(previous_vertex)
             if check_vertex is None:
                 break
-            bit_state = self.get_bit_state(check_vertex, bit_state, check_to_bit_messages)
-            check_update = self.compute_check_update(check_vertex, bit_to_check_messages)
-            self.apply_bit_update(check_vertex, check_update, bit_state)
+            check_to_bit_messages = self.update_check_to_bit_messages(check_vertex, bit_to_check_messages)
+            bit_to_check_messages = self.update_bit_to_check_messages(initial_bit_states, check_to_bit_messages)
+            previous_vertex = check_vertex
+        return self.compute_marginals(initial_bit_states, check_to_bit_messages)
 
     def initialise_messages(self, initial_bit_state: dict):
         """
