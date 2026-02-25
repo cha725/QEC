@@ -135,8 +135,8 @@ class BeliefPropagation:
             check_vertex = self.select_check_vertex(previous_vertex)
             if check_vertex is None:
                 break
-            check_to_bit_messages = self.update_check_to_bit_messages(check_vertex, bit_to_check_messages)
-            bit_to_check_messages = self.update_bit_to_check_messages(initial_bit_states, check_to_bit_messages)
+            check_to_bit_messages = self.update_check_to_bit_messages(check_vertex, check_to_bit_messages, bit_to_check_messages)
+            bit_to_check_messages = self.update_bit_to_check_messages(initial_bit_states, bit_to_check_messages, check_to_bit_messages)
             previous_vertex = check_vertex
         return self.compute_marginals(initial_bit_states, check_to_bit_messages)
 
@@ -178,7 +178,7 @@ class BeliefPropagation:
         candidate_vertices = [v for v in self.check_vertices if v != previous_vertex]
         return random.choice(candidate_vertices)
 
-    def update_check_to_bit_messages(self, check_vertex, bit_to_check_messages: dict) -> dict:
+    def update_check_to_bit_messages(self, check_vertex, check_to_bit_messages: dict, bit_to_check_messages: dict) -> dict:
         neighbour_bits = self.check_neighbourhood[check_vertex]
         for target_bit in neighbour_bits:
             prod = 1.0
@@ -190,7 +190,7 @@ class BeliefPropagation:
             check_to_bit_messages[check_vertex][target_bit] = 0.5*(1 - prod)
         return check_to_bit_messages
 
-    def update_bit_to_check_messages(self, initial_bit_states: dict, check_to_bit_messages: dict):        
+    def update_bit_to_check_messages(self, initial_bit_states: dict, bit_to_check_messages: dict, check_to_bit_messages: dict):        
         for bit in self.bit_vertices:
             bit_neighbourhood = self.bit_neighbourhood[bit]
             for target_check in bit_neighbourhood:
