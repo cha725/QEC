@@ -169,7 +169,11 @@ class BeliefPropagation:
         pass
 
     def select_check_vertex(self):
-        pass
+        """
+        Select the next check vertex to consider. Currently just selects randomly.
+        TODO: implement an algorithm to do this.
+        """
+        return random.choice(self.check_vertices)
 
     def get_bit_state(self, check_node, bit_state, messages):
         pass
