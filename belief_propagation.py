@@ -219,7 +219,29 @@ class BeliefPropagation:
             check_to_bit_messages[target_bit] = self._sum_probs_over_bits(other_bits, neighbour_bit_states)
         return check_to_bit_messages
 
-        pass
+    def _sum_probs_over_bits(self, other_bits: list, bit_states: dict) -> float:
+        """
+        Computes the probability the target bit is 0 or 1 by summing over
+        all possible vectors such that they are 0 or 1 respectively with the parity
+        check. Returns the normalised probability that target bit is 0.
+        """
+        prob_target_0 = 0.0
+        prob_target_1 = 0.0
+        for vector in product([0,1], repeat=len(other_bits)):
+            vector_prob = 1.0
+            for bit, value in zip(other_bits, vector):
+                prob_bit_0 = bit_states[bit]
+                if value == 0:
+                    vector_prob *= prob_bit_0
+                else:
+                    vector_prob *= 1-prob_bit_0
+            parity = (sum(vector) % 2)
+            if parity == 0:
+                prob_target_0 += vector_prob
+            else:
+                prob_target_1 += vector_prob
+        norm = prob_target_0 + prob_target_1
+        return prob_target_0/norm
 
 
 # Repetition code parity check
