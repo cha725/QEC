@@ -99,3 +99,54 @@ def find_number_vertices_in_random_tree(max_num_vertices: int = 50, num_iteratio
     final_info = mp.run(num_iterations)
     return (final_info[0], final_info[1][0])        
     
+
+class BeliefPropagation:
+
+    """
+    Edge set must only contain ordered edges.
+    The check vertices will be the sources of the edges
+    and the bit vertices will be the targets of the edges.
+    """
+    def __init__(self,
+                 edge_set: list):
+        self.edge_set = edge_set
+        vertex_info = self._initialise_vertices()
+        self.check_vertices = vertex_info["check_vertices"]
+        self.bit_vertices = vertex_info["bit_vertices"]
+        self.check_neighbourhood = vertex_info["check_neighbourhood"]
+        self.bit_neighbourhood = vertex_info["bit_neighbourhood"]
+        self.graph = self._create_bipartite_graph()
+
+    def _initialise_vertices(self) -> dict:
+        """
+        Create check and bit vertex lists from edge set.
+        Also create dictionaries to store neighbourhoods of each vertex.
+        """
+        check_vertices = set()
+        bit_vertices = set()
+        check_neighbourhood = defaultdict(set)
+        bit_neighbourhood = defaultdict(set)
+
+        for source, target in self.edge_set:
+            check_vertices.add(source)
+            bit_vertices.add(target)
+            check_neighbourhood[source].add(target)
+            bit_neighbourhood[target].add(source)
+
+        return {"check_vertices": list(check_vertices),
+                "bit_vertices": list(bit_vertices),
+                "check_neighbourhood": dict(check_neighbourhood),
+                "bit_neighbourhood": dict(bit_neighbourhood),}
+
+    def _create_bipartite_graph(self):
+        """
+        Create NetworkX bipartite graph. 
+        Check vertices have the bipartite label 'check',
+        bit vertices havd the bipartite label 'bit'.
+        """
+        graph = nx.Graph()
+        graph.add_nodes_from(self.check_vertices, bipartite='check')
+        graph.add_nodes_from(self.bit_vertices, bipartite='bit')
+        graph.add_edges_from(self.edge_set)
+        return graph
+        
