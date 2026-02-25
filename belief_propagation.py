@@ -208,6 +208,24 @@ class BeliefPropagation:
     def compute_check_update(self, check_node, incoming):
         pass
 
-    def apply_bit_update(self, check_node, check_update, bit_state, messages):
-        pass
+
+# Repetition code parity check
+edge_set = [('a', 0), ('a', 1), ('b', 1), ('b', 2)]
+received_message = {0: 0, 1: 1, 2: 0}
+channel_probabilities = {0: 0.25, 1: 0.25, 2: 0.25}
+
+bp = BeliefPropagation(edge_set)
+
+print("Check vertices:", bp.check_vertices)
+print("Bit vertices:", bp.bit_vertices)
+print("Check neighbourhood:", bp.check_neighbourhood)
+print("Bit neighbourhood:", bp.bit_neighbourhood)
+
+print("Graph nodes:", bp.graph.nodes(data=True))
+print("Graph edges:", bp.graph.edges())
+
+
+bit_state = bp.initialise_bit_state(received_message, channel_probabilities)
+# m=010, should be: 0.75, 0.25, 0.75 
+print("Initial bit state:", bit_state)
 
