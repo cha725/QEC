@@ -220,42 +220,59 @@ class BeliefPropagation:
             marginals[bit] = (p_bit * prod_0) / (p_bit * prod_0 + (1-p_bit) * prod_1)
         return marginals
 
-
-
-
-# Repetition code parity check
-edge_set = [('a', 0), ('a', 1), ('b', 1), ('b', 2)]
-received_message = {0: 0, 1: 1, 2: 0}
-channel_probabilities = {0: 0.25, 1: 0.25, 2: 0.25}
-
-bp = BeliefPropagation(edge_set)
-
-print("Check vertices:", bp.check_vertices)
-print("Bit vertices:", bp.bit_vertices)
-print("Check neighbourhood:", bp.check_neighbourhood)
-print("Bit neighbourhood:", bp.bit_neighbourhood)
-
-print("Graph nodes:", bp.graph.nodes(data=True))
-print("Graph edges:", bp.graph.edges())
-
-
-bit_state = bp.initialise_bit_state(received_message, channel_probabilities)
-# m=010, should be: 0.75, 0.25, 0.75 
-print("Initial bit state:", bit_state)
-
-
-bit_to_check_messages, check_to_bit_messages = bp.initialise_messages(bit_state)
-# Should be {(0,a):0.75, (1,a):0.25, (1,b):0.25, (2,b):0.75}
-print("Bit to check messages:", bit_to_check_messages)
-# Should be {(a,0):0, (a,1):0, (b,1):0, (b,2):0}
-print("Check to bit messages:", check_to_bit_messages)
-
-random_check = bp.select_check_vertex()
-print("Randomly selected check vertex:", random_check)
-
-# Set a vertex for the rest of the time to check the rest of the methods correctly
-
-random_check = 'a'
-
-bit_state = bp.run({0:0,1:1,2:0}, {0:0.25,1:0.25,2:0.25}, 10)
-print(bit_state)
+class BPExample:
+    """Run a Belief Propagation example on a given LinearCode."""
+    
+    def __init__(self, code: LinearCode, channel_prob: float = 0.25):
+        self.code = code
+        self.channel_prob = channel_prob
+        self.bp = BeliefPropagation(code)
+        
+        self.codeword = random.choice(code.codewords)
+        
+        self.transmitted = code.transmit_codeword(self.codeword.bits,
+                                                  [channel_prob]*code.length)
+        
+        self.message = {bit: self.transmitted[bit_idx] 
+                        for bit_idx, bit in enumerate(self.bp.bit_vertices)}
+        self.channel_probabilities = {bit: channel_prob for bit in self.bp.bit_vertices}
+        
+        self.initial_bit_states = self.bp.initialise_bit_state(self.message,
+                                                               self.channel_probabilities)
+        self.bit_to_check_messages, self.check_to_bit_messages = self.bp.initialise_messages(
+            self.initial_bit_states
+        )
+        
+    def print_setup(self):
+        print(f"\n=== Code:")
+        print(self.code.generator_matrix.array)
+        print(f"Codewords: {len(self.code.codewords)}")
+        print("\nSelected codeword:")
+        print(f"Bits: {self.codeword.bits}\n")
+        print("Transmitted message through channel:")
+        print(self.transmitted)
+        print("\nParity check equations:")
+        for idx, eq in enumerate(self.code.parity_check_eqns):
+            print(f"Check {idx}: {eq}")
+        print("\nBelief Propagation Graph:")
+        print(f"Check vertices: {self.bp.check_vertices}")
+        print(f"Bit vertices: {self.bp.bit_vertices}")
+        print(f"Check neighbourhood: {self.bp.check_neighbourhood}")
+        print(f"Bit neighbourhood: {self.bp.bit_neighbourhood}")
+        print("\nInitial bit states:")
+        for bit, state in self.initial_bit_states.items():
+            print(f"Bit {bit}: {state:.3f}")
+        print("\nInitial bit to check messages:")
+        for bit, checks in self.bit_to_check_messages.items():
+            print(f"Bit {bit}: { {chk: f'{val:.3f}' for chk, val in checks.items()} }")
+        print("\nInitial check to bit messages:")
+        for check, bits in self.check_to_bit_messages.items():
+            print(f"Check {check}: { {bit: f'{val:.3f}' for bit, val in bits.items()} }")
+            
+    def run_bp(self):
+        print("\nRunning Belief Propagation...")
+        marginals = self.bp.run(self.message, self.channel_probabilities)
+        print("\nFinal bit marginals:")
+        for bit, prob in marginals.items():
+            print(f"Bit {bit}: {prob:.3f}")
+        return marginals
