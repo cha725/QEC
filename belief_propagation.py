@@ -202,8 +202,14 @@ class BeliefPropagation:
         """
         return random.choice(self.check_vertices)
 
-    def get_bit_state(self, check_node, bit_state, messages):
-        pass
+    def get_bit_state(self, check_vertex, bit_state: dict):
+        """
+        Get bit state from all bits connected to this check vertex.
+        """
+        neighbour_bit_states = {}
+        for bit in self.check_neighbourhood[check_vertex]:
+            neighbour_bit_states[bit] = bit_state[bit]
+        return neighbour_bit_states
 
     def compute_check_update(self, check_node, incoming):
         pass
