@@ -208,9 +208,17 @@ class BeliefPropagation:
         """
         candidate_vertices = [v for v in self.check_vertices if v != previous_vertex]
         return random.choice(candidate_vertices)
+
+    def update_check_to_bit_messages(self, check_vertex, bit_to_check_messages: dict) -> dict:
+        neighbour_bits = self.check_neighbourhood[check_vertex]
         for target_bit in neighbour_bits:
-            other_bits = [bit for bit in neighbour_bits if bit != target_bit]
-            check_to_bit_messages[target_bit] = self._sum_probs_over_bits(other_bits, neighbour_bit_states)
+            prod = 1.0
+            for new_bit in neighbour_bits:
+                if target_bit == new_bit:
+                    continue
+                prob_other_bit_0 = bit_to_check_messages[new_bit][check_vertex]
+                prod *= (1-2*prob_other_bit_0)
+            check_to_bit_messages[check_vertex][target_bit] = 0.5*(1 - prod)
         return check_to_bit_messages
 
     def _sum_probs_over_bits(self, other_bits: list, bit_states: dict) -> float:
