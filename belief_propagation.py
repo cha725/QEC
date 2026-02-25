@@ -288,10 +288,5 @@ print("Randomly selected check vertex:", random_check)
 
 random_check = 'a'
 
-neighbour_state = bp.get_bit_state(random_check, bit_state)
-# Should be {0:0.75, 1:0.25}
-print(f"Neighbouring bit states of check {random_check}:", neighbour_state)
-
-check_update = bp.compute_check_update(neighbour_state)
-# Should be {0: P(b1=0)=0.25, 1: P(b0=0)=0.75}
-print("Check update messages:", check_update)
+bit_state = bp.run({0:0,1:1,2:0}, {0:0.25,1:0.25,2:0.25}, 10)
+print(bit_state)
