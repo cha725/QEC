@@ -180,9 +180,15 @@ class BinaryMatrix:
             return True
         zero_matrix = BinaryMatrix([[0 for _ in range(other.rank)] for _ in range(self.rank)])
         return self.multiply(other.transpose()) == zero_matrix
+    
+    def __eq__(self, other: "BinaryMatrix") -> bool:
+        return np.array_equal(self.rref.bool_matrix, other.rref.bool_matrix)
+
+    def __str__(self):
+        return f"{self.array}"
 
     def __repr__(self):
-        return f"Binary matrix: \n {self.array}."
+        return f"Binary matrix(\n{self.array})."
 
 
 
