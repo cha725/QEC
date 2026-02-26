@@ -123,12 +123,6 @@ class BinaryMatrix:
             elements += elt
         return elements
 
-    def rowspan_elements(self):
-        """
-        Return elements in span of the basis as a list of binary lists.
-        """               
-        return [arr.tolist() for arr in self._rowspan_elements()]        
-
     @cached_property
     def nullspace(self) -> "BinaryMatrix":
         """
@@ -162,6 +156,10 @@ class BinaryMatrix:
             return BinaryMatrix(basis_vectors)
         else:
             return BinaryMatrix([[0]*self.num_cols])
+        
+    def transpose(self) -> "BinaryMatrix":
+        return BinaryMatrix(self.array.transpose().tolist())
+        
 
     def __repr__(self):
         return f"Binary matrix: \n {self.array}."
