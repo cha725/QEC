@@ -172,6 +172,14 @@ class BinaryMatrix:
                 result[i, j] = np.bitwise_xor.reduce(self.array[i, :] & other.array[:, j])
         return BinaryMatrix(result.astype(int).tolist())
     
+    def is_perpendicular_to(self, other: "BinaryMatrix") -> bool:
+        """
+        Returns True is self * other^T = 0 and False otherwise.
+        """
+        if self.rank == 0 or other.rank == 0:
+            return True
+        zero_matrix = BinaryMatrix([[0 for _ in range(other.rank)] for _ in range(self.rank)])
+        return self.multiply(other.transpose()) == zero_matrix
 
     def __repr__(self):
         return f"Binary matrix: \n {self.array}."
