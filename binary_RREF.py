@@ -72,24 +72,13 @@ class BinaryMatrix:
     
     @cached_property
     def rref(self) -> "BinaryMatrix":
-        return self._rref_algorithm[0]
-    
-    @cached_property
-    def generator_matrix(self) -> NDArray:
         """
-        Return a RREF matrix that has the same rowspan as the binary matrix.
+        Returns:
+            - BinaryMatrix: the reduced row echelon form (RREF) of the matrix.
         """
-        R = self.rref.array
-        return R[~np.all(R == 0, axis=1),:]
-
-    @cached_property
-    def _basis(self) -> list[NDArray]:
-        """
-        Return basis of row space of binary matrix as a list of numpy arrays.
-        Only keep those rows that have a nonzero entry.
-        """
-        return [row.astype(int) for row in self.generator_matrix]
-        
+        int_rref = np.array(self._compute_rref[0], dtype=int)
+        rows = int_rref.tolist()
+        return BinaryMatrix(rows)
     @cached_property
     def basis(self) -> list[list[int]]:
         """
