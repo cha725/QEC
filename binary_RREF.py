@@ -104,25 +104,23 @@ class BinaryMatrix:
             - int: rank of matrix.
         """
         return len(self.basis)
-        """
-        Return the number of elements in the span of the basis.
-        """ 
-        return 2**self.rank
     
-    def _rowspan_elements(self) -> list[NDArray]:
+    @cached_property
+    def rowspan_vectors(self) -> set[list[int]]:
         """
-        Return a list of elements in the span of the basis.
+        Returns:
+            - set[list[int]]: the set of vectors in the span of the basis.
         """
-        basis = self._basis
+        basis = self.basis
         if not basis:
-            return [np.zeros(self.shape[1], dtype=int)]
-        elements = []
+            return [0]*self.num_cols
+        elements = set()
         for coeffs in product([0,1], repeat=self.rank):
-            elt = np.zeros(self.shape[1], dtype=int)
+            elt = [0]*self.num_cols
             for coeff, vec in zip(coeffs, basis):
                 if coeff:
                     elt ^= vec
-            elements.append(elt)
+            elements += elt
         return elements
 
     def rowspan_elements(self):
