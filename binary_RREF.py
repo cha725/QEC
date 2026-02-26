@@ -36,9 +36,13 @@ class BinaryMatrix:
         return arr
 
     @cached_property
-    def _rref_algorithm(self) -> tuple["BinaryMatrix", list[tuple[int,...]]]:
+    def _compute_rref(self) -> tuple[NDArray[np.bool_], list[tuple[int,int]]]:
         """
         Compute the reduced row echelon form (RREF) of a matrix.
+
+        Returns:
+            - NDArray[np.bool_]: RREF matrix as a boolean numpy array
+            - list[tuple[int,int]]: list of pivot coordinates used in the RREF algorithm
         """
         M = self.bool_matrix.copy()
         num_rows, num_cols = M.shape
