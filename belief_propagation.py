@@ -187,7 +187,8 @@ class BeliefPropagation:
                     remaining_check_vertices = self.check_vertices.copy()
                 else:
                     break
-        return self.calculate_bit_marginals(initial_bit_probabilities, check_to_bit_messages)
+                
+        return self._assemble_bit_results()
 
     def _initialise_messages(self):
         """
@@ -347,15 +348,27 @@ class BeliefPropagation:
                 prod_1 *= 1 - message
             prob_bit_0 = self.initial_bit_probabilities[bit]
             self.marginals[bit] = (prob_bit_0 * prod_0) / (prob_bit_0 * prod_0 + (1 - prob_bit_0) * prod_1)
+    
+    def _assemble_bit_results(self) -> dict[int, tuple[int, float]]:
+        """
+        Combine frozen bits and remaining bits to produce final estimates.
+
+        For frozen bits, keep their frozen value and marginal.
+        For other bits, assign 0 or 1 based on marginal > 0.5, 
+        and also return the marginal probability.
+        """
+        results: dict[int, tuple[int, float]] = {}
+        self._update_bit_marginals()
         for bit in self.bit_vertices:
-            if bit in frozen_bits.keys():
-                results[bit] = frozen_bits[bit]
+            if bit in self.frozen_bits:
+                results[bit] = self.frozen_bits[bit]
             else:
-                marginal = marginals[bit]
+                marginal = self.marginals[bit]
                 if marginal > 0.5:
-                    results[bit] = (0, marginal)
+                    value = 0
                 else:
-                    results[bit] = (1, marginal)
+                    value = 1
+                results[bit] = (value, marginal)
         return results
 
 class BPExample:
