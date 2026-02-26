@@ -150,22 +150,23 @@ class BeliefPropagation:
                                 ) -> tuple[dict[int,dict[int, float]], dict[int,dict[int, float]]]:
         """
         Create the initial messages for belief propagation algorithm.
-            - Bit to check messages start at P(received_bit | sent_bit = 0).
+
+        For sent bit s and received bit r.
+            - Bit to check messages start at P(r | s = 0).
             - Check to bit messages start at 0.5.
         
         Args:
             - initial_bit_probabilities (dict[int, float]):
-                A dictionary that maps bit vertices to the initial probability they came from a 0.
+                For each bit i with sent bits s_i and received bits s_i.
+                Maps a bit i to P(r_i | s_i = 0).
 
         Returns:
             - bit_to_check_messages (dict[int, dict[int, float]]):
                 The messages from bit vertices to check vertices.
-                In the form of a dictionary that maps a bit vertex to another dictionary whose keys are
-                check vertices and values are the messages 'bit vertex -> check vertex'.
+                    bit_to_check_messages[i][a] = messages from bit i to check a.
             - check_to_bit_messages (dict[int, dict[int, float]]):
                 The messages from check vertices to bit vertices.
-                In the form of a dictionary that maps a check vertex to another dictionary whose keys are
-                bit vertices and values are the messages 'check vertex -> bit vertex'.               
+                    check_to_bit_messages[a][i] = messages from check a to bit i.
         """
         bit_to_check_messages = {bit : {} for bit in self.bit_vertices}
         check_to_bit_messages = {check : {} for check in self.check_vertices}
@@ -180,19 +181,26 @@ class BeliefPropagation:
                                           channel_probabilities: dict[int, float]
                                           ) -> dict[int, float]:
         """
-        Compute the initial probabilities for each bit based on the received message 
-        and the channel probabilities.
-
+        Compute initial probabilities.
+        For bit i with sent bit s_i and received bit r_i, computes 
+            P(r_i | s_i = 0)
+        using channel flip probabilities.
+        
+        Suppose a bit flips with probability p_i.
+        - If r_i = 0, then
+            P(r_i | s_i = 0) = 1 - p_i.
+        - If r_i = 1, then
+            P(r_i | s_i = 0) = p_i.                
+        
         Args:
             - received_message (dict[int, int]): 
-                A dictionary mapping the bit vertex to the received value: either 0 or 1.
+                Maps bit i to received value r_i: either 0 or 1.
             - channel_probabilities (dict[int, float]): 
-                A dictionary mapping the bit vertex to the probability it will flip.
+                Maps bit i to probability it will flip p_i.
 
         Returns:
             - dict[int, float]:
-                A dictionary mapping the bit vertex to the probability:
-                    P( received_bit | sent_bit = 0 ).
+                Maps a bit i to P(r_i | s_i = 0).
         """
         initial_bit_probs = {}
         for bit in self.bit_vertices:
@@ -203,15 +211,41 @@ class BeliefPropagation:
                 initial_bit_probs[bit] = prob_bit_flip
         return initial_bit_probs
 
-    def select_check_vertex(self, previous_vertex = None):
+    def _select_check_vertex(self, candidates: list[int]) -> int | None:
         """
-        Select the next check vertex to consider. Currently just selects randomly.
+        Select the next check vertex to update.
         TODO: implement an algorithm to do this.
-        """
-        candidate_vertices = [v for v in self.check_vertices if v != previous_vertex]
-        return random.choice(candidate_vertices)
 
-    def update_check_to_bit_messages(self, check_vertex, check_to_bit_messages: dict, bit_to_check_messages: dict) -> dict:
+        Args:
+            - candidates (list[int]): list of check vertices not used in this pass.
+        
+        Returns:
+            - int | None: a check vertex or None if the candidates list is empty.
+        """
+        if not candidates:
+            return None
+        return random.choice(candidates)
+
+    def _update_check_to_bit_messages(self, 
+                                      check_vertex: int, 
+                                      check_to_bit_messages: dict[int, dict[int, float]], 
+                                      bit_to_check_messages: dict[int, dict[int, float]]
+                                      ) -> dict[int, dict[int, float]]:
+        """
+        Update the messages from the check vertices to the bit vertices.
+        
+        For a check a and target bit i, the new message is
+            0.5 * (1 - product_{neighbour bits except i} (1 - 2(messsage from bit to a)) )
+
+        Args:
+            - check_vertex (int): the check vertex being updated.
+            - check_to_bit_messages (dict[int, dict[int, float]]): current check to bit messages.
+            - bit_to_check_messages (dict[int, dict[int, float]]): current bit to check messages.
+        
+        Returns:
+            - dict[int, dict[int, float]]:
+                Updated check to bit messages.
+        """
         neighbour_bits = self.check_neighbourhood[check_vertex]
         for target_bit in neighbour_bits:
             prod = 1.0
@@ -223,7 +257,28 @@ class BeliefPropagation:
             check_to_bit_messages[check_vertex][target_bit] = 0.5*(1 - prod)
         return check_to_bit_messages
 
-    def update_bit_to_check_messages(self, initial_bit_states: dict, bit_to_check_messages: dict, check_to_bit_messages: dict):        
+    def _update_bit_to_check_messages(self, 
+                                      initial_bit_probabilities: dict[int, float], 
+                                      bit_to_check_messages: dict[int, dict[int, float]], 
+                                      check_to_bit_messages: dict[int, dict[int, float]]
+                                      ) -> dict[int, dict[int, float]]:        
+        """
+        Update the messages from bit vertices to check vertices.
+        TODO: this updates all bit vertices, probably only want to do the ones connected to
+        the current check vertex.
+
+        For bit i and check a, updates using the formula:
+            P(r_i | s_i = 0)*( prod_{neighbour checks except a} message from check to i) / norm
+                
+        Args:
+            - initial_bit_probabilities (dict[int, float]): the initial probabilities P(r_i | s_i = 0)
+            - bit_to_check_messages (dict[int, dict[int, float]]): current bit to check messages.
+            - check_to_bit_messages (dict[int, dict[int, float]]): current check to bit messages.
+        
+        Returns:
+            - dict[int, dict[int, float]]:
+                Updated bit to check messages.
+        """
         for bit in self.bit_vertices:
             bit_neighbourhood = self.bit_neighbourhood[bit]
             for target_check in bit_neighbourhood:
@@ -239,8 +294,24 @@ class BeliefPropagation:
                 bit_to_check_messages[bit][target_check] = (p_bit * prod_0) / (p_bit * prod_0 + (1-p_bit) * prod_1)
         return bit_to_check_messages
     
-    def compute_marginals(self, initial_bit_states: dict, check_to_bit_messages: dict):
-        marginals = {bit : 0.0 for bit in self.bit_vertices}
+    def calculate_bit_marginals(self, 
+                                initial_bit_probabilities: dict[int, float], 
+                                check_to_bit_messages: dict[int, dict[int, float]]
+                                ) -> dict[int, float]:
+        """
+        Compute the marginal probabilities for each bit after message passing.
+
+        For bit i with sent bit s_i and received bit r_i, compute
+            P(r_i | s_i = 0)*(prod_{neighbouring check vertices} message check to i) / norm.
+
+        Args:
+            - initial_bit_probabilities (dict[int, float]): maps bit to initial probability P(r_i | s_i = 0).
+            - check_to_bit_messages (dict[int, dict[int, float]]): messages from check vertices to bit vertices.
+
+        Returns:
+            - dict[int, float]:
+                Maps a bit to the probability the code bit was a 0.
+        """
         for bit in self.bit_vertices:
             bit_neighbourhood = self.bit_neighbourhood[bit]
             prod_0 = 1.0
