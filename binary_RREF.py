@@ -4,16 +4,23 @@ from itertools import product
 from numpy.typing import NDArray
 
 class BinaryMatrix:
+    """
+    Represents a matrix over F2.
 
+    Parameters:
+        - rows (list[list[int]]): entry [i,j] of the matrix is rows[i,j]
+            Any entry in rows that is not 0 will be treated as a 1.
+    """
     def __init__(self,
-                 entries: list[list[int]]):
-        length = len(entries[0])
-        for entry in entries:
-            if len(entry) != length:
-                raise ValueError(f"All lists in entries must have the same length.")
-        self._entries = entries
-        self._array = np.array(self._entries, dtype=int)
-        self.shape = self._array.shape
+                 rows: list[list[int]]):
+        num_cols = len(rows[0])
+        if any(len(row) != num_cols for row in rows):
+            raise ValueError(f"All rows must have the same length.")
+        self._rows = rows
+        self.bool_matrix = np.array(self, dtype=bool, copy=True)
+        self.shape = self.bool_matrix.shape
+        self.num_rows = self.shape[0]
+        self.num_cols = self.shape[1]
 
     @property
     def entries(self) -> list[list[int]]:
