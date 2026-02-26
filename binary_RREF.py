@@ -100,11 +100,10 @@ class BinaryMatrix:
     @property
     def rank(self) -> int:
         """
-        Return rank of matrix over F2.
+        Returns:
+            - int: rank of matrix.
         """
-        return len(self._basis)
-
-    def num_rowspan_elements(self) -> int:
+        return len(self.basis)
         """
         Return the number of elements in the span of the basis.
         """ 
