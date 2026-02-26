@@ -162,21 +162,33 @@ class BeliefPropagation:
                 check_to_bit_messages[check_vertex][bit_vertex] = 0.0
         return bit_to_check_messages, check_to_bit_messages
 
-    def initialise_bit_state(self,
-                             received_message: dict, 
-                             channel_probabilities: dict):
+    def compute_initial_bit_probabilities(self,
+                                          received_message: dict[int, int],
+                                          channel_probabilities: dict[int, float]
+                                          ) -> dict[int, float]:
         """
-        Returns dictionary with keys given by the bit vertices and whose values are
-        P(bit = received_message given c=0).
+        Compute the initial probabilities for each bit based on the received message 
+        and the channel probabilities.
+
+        Args:
+            - received_message (dict[int, int]): 
+                A dictionary mapping the bit vertex to the received value: either 0 or 1.
+            - channel_probabilities (dict[int, float]): 
+                A dictionary mapping the bit vertex to the probability it will flip.
+
+        Returns:
+            - dict[int, float]:
+                A dictionary mapping the bit vertex to the probability:
+                    P( received_bit | sent_bit = 0 ).
         """
-        initial_bit_state = {}
+        initial_bit_probs = {}
         for bit in self.bit_vertices:
-            p = channel_probabilities[bit]
+            prob_bit_flip = channel_probabilities[bit]
             if received_message[bit] == 0:
-                initial_bit_state[bit] = 1-p
+                initial_bit_probs[bit] = 1-prob_bit_flip
             else:
-                initial_bit_state[bit] = p
-        return initial_bit_state
+                initial_bit_probs[bit] = prob_bit_flip
+        return initial_bit_probs
 
     def select_check_vertex(self, previous_vertex = None):
         """
