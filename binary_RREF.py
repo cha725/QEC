@@ -88,8 +88,12 @@ class BinaryMatrix:
         """
         rows = self.rref.array
         return [row.tolist() for row in rows if np.any(row)]
+        
+    @cached_property
+    def rowspace(self) -> "BinaryMatrix":
         """
-        Return new BinaryMatrix that is reduced and has the same row span.
+        Returns:
+            - BinaryMatrix: a RREF matrix that has the same rowspan as the matrix.
         """
         return BinaryMatrix(self.basis)
 
