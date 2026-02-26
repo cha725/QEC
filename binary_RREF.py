@@ -79,16 +79,15 @@ class BinaryMatrix:
         int_rref = np.array(self._compute_rref[0], dtype=int)
         rows = int_rref.tolist()
         return BinaryMatrix(rows)
+    
     @cached_property
     def basis(self) -> list[list[int]]:
         """
-        Return basis of row space of binary matrix as a list of binary lists.
-        Only keep those rows that have a nonzero entry.
+        Returns:
+            - list[list[int]]: a basis of the row space of the matrix.
         """
-        return [arr.tolist() for arr in self._basis]
-    
-    
-    def rowspan_matrix(self) -> "BinaryMatrix":
+        rows = self.rref.array
+        return [row.tolist() for row in rows if np.any(row)]
         """
         Return new BinaryMatrix that is reduced and has the same row span.
         """
