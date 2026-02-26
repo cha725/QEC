@@ -160,6 +160,18 @@ class BinaryMatrix:
     def transpose(self) -> "BinaryMatrix":
         return BinaryMatrix(self.array.transpose().tolist())
         
+    def multiply(self, other: "BinaryMatrix") -> "BinaryMatrix":
+        """
+        Multiply two binary matrices (self * other) as boolean matrices.
+        """
+        if self.num_cols != other.num_rows:
+            raise ValueError("Number of columns of self must equal the number of rows of other.")
+        result = np.zeros((self.num_rows, other.num_cols), dtype=bool)
+        for i in range(self.num_rows):
+            for j in range(other.num_cols):
+                result[i, j] = np.bitwise_xor.reduce(self.array[i, :] & other.array[:, j])
+        return BinaryMatrix(result.astype(int).tolist())
+    
 
     def __repr__(self):
         return f"Binary matrix: \n {self.array}."
