@@ -193,49 +193,25 @@ class BinaryMatrix:
 
 
 if __name__ == "__main__":
-    
-    M = BinaryMatrix([[1,0,1,0],[1,0,1,1],[0,1,1,0],[1,0,1,0],[0,0,1,1]])
 
-    print(f"\n=== Matrix: {M.array}")
-    M.swap_rows(0,1)
-    print(f"Swap rows 0 and 1: {M.array}")
-    M.add_rows(1,0)
-    print(f"Add row 1 to row 0: {M.array}")
-    print(f"RREF: {M.rref.array}")
-    print(f"Generator matrix: {M.generator_matrix}")
-    print(f"Rank of M = {M.rank}")
-    print(f"Nullspace of M: {M.nullspace.array}")
+    import random
 
-
-    M = BinaryMatrix([[1,0,1,0],[1,0,1,0],[0,1,1,0],[1,0,1,0],[0,0,1,0]])
-
-    print(f"\n=== Matrix: {M.array}")
-    M.swap_rows(0,1)
-    print(f"Swap rows 0 and 1: {M.array}")
-    M.add_rows(1,0)
-    print(f"Add row 1 to row 0: {M.array}")
-    print(f"RREF: {M.rref.array}")
-    print(f"Generator matrix: {M.generator_matrix}")
-    print(f"Rank of M = {M.rank}")
-    print(f"Nullspace of M: {M.nullspace.array}")
-    
-    M = BinaryMatrix(
-        [[0, 0, 0, 0, 0], 
-         [0, 0, 0, 0, 1], 
-         [0, 0, 0, 1, 0], 
-         [0, 0, 0, 1, 1], 
-         [1, 0, 1, 0, 0], 
-         [1, 0, 1, 0, 1], 
-         [1, 0, 1, 1, 0], 
-         [1, 0, 1, 1, 1]]
-         )
-    
-    print(f"\n=== Matrix: {M.array}")
-    M.swap_rows(0,1)
-    print(f"Swap rows 0 and 1: {M.array}")
-    M.add_rows(1,0)
-    print(f"Add row 1 to row 0: {M.array}")
-    print(f"RREF: {M.rref.array}")
-    print(f"Generator matrix: {M.generator_matrix}")
-    print(f"Rank of M = {M.rank}")
-    print(f"Nullspace of M: {M.nullspace.array}")
+    class BMExample:
+        """
+        def __init__(self,
+                     rows: list[list[int]]):
+            self.bm = BinaryMatrix(rows)
+        
+        def run(self, verbose: bool = False):
+            rref = self.bm.rref
+            generator = self.bm.rowspace
+            nullspace = self.bm.nullspace
+            if verbose:
+                print(f"\n=== Matrix === \n{self.bm.array}")
+                print(f"\nRREF: \n{rref}")
+                print(f"\nRank of M = {self.bm.rank}")
+                print(f"\nGenerator matrix: \n{generator}")
+                print(f"\nNullspace of M: \n{nullspace}")
+                print(f"\nCheck generator is perp to nullspace: {generator.is_perpendicular_to(nullspace)}")
+            return rref, generator, nullspace
+        
