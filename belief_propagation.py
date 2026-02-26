@@ -134,17 +134,40 @@ class BeliefPropagation:
 
     def run(self, 
             received_message: dict,
-            channel_probabilities: dict, 
-            max_iterations: int = 100):
-        initial_bit_states = self.initialise_bit_state(received_message, channel_probabilities)
-        bit_to_check_messages, check_to_bit_messages = self.initialise_messages(initial_bit_states)
-        previous_vertex = None
+            channel_probabilities: dict,
+            num_parity_check_passes: int = 20, 
+            max_iterations: int = 100
+            ) -> dict[int, float]:
+        initial_bit_probabilities = self.compute_initial_bit_probabilities(received_message, channel_probabilities)
+        bit_to_check_messages, check_to_bit_messages = self.create_initial_messages(initial_bit_probabilities)
+        remaining_check_vertices = self.check_vertices.copy()
+        passes_completed = 0
         for _ in range(max_iterations):
-            check_vertex = self.select_check_vertex(previous_vertex)
+
+            check_vertex = self._select_check_vertex(remaining_check_vertices)
             if check_vertex is None:
                 break
-            check_to_bit_messages = self.update_check_to_bit_messages(check_vertex, check_to_bit_messages, bit_to_check_messages)
-            bit_to_check_messages = self.update_bit_to_check_messages(initial_bit_states, bit_to_check_messages, check_to_bit_messages)
+
+            check_to_bit_messages = self._update_check_to_bit_messages(
+                check_vertex, 
+                check_to_bit_messages, 
+                bit_to_check_messages
+            )
+            bit_to_check_messages = self._update_bit_to_check_messages(
+                initial_bit_probabilities, 
+                bit_to_check_messages, 
+                check_to_bit_messages
+            )
+
+            remaining_check_vertices.remove(check_vertex)
+            if not remaining_check_vertices:
+                passes_completed += 1
+                if passes_completed < num_parity_check_passes:
+                    remaining_check_vertices = self.check_vertices.copy()
+                else:
+                    break
+        return self.calculate_bit_marginals(initial_bit_probabilities, check_to_bit_messages)
+
     def create_initial_messages(self, 
                                 initial_bit_probabilities: dict[int, float]
                                 ) -> tuple[dict[int,dict[int, float]], dict[int,dict[int, float]]]:
