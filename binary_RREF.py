@@ -130,12 +130,21 @@ class BinaryMatrix:
 
     @cached_property
     def nullspace(self) -> "BinaryMatrix":
-        M, pivots = self._rref_algorithm
-        n = M.shape[1]
-        pivot_cols = [c for _, c in pivots]
-        free_cols = [c for c in range(n) if c not in pivot_cols]
-        
-        basis = []
+        """
+        Returns:
+            - BinaryMatrix: a basis for the nullspace of the matrix over F2.
+
+        Method:
+        1. Compute the RREF of M. This gives:
+            - pivot columns which correspond to dependent variables
+            - non pivot columns which correspond to free variables
+        2. For each free variable:
+            - set that free variable = 1
+            - set all other free variables = 0
+            - compute the pivot variables by back substitution in RREF
+              (each pivot variable is the xor of the free variables to its right)
+        3. Collect each resulting vector. These form a basis of the nullspace.
+        """
         for free in free_cols:
             vec = np.zeros(n, dtype=bool)
             vec[free] = True
