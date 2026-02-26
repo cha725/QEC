@@ -138,6 +138,29 @@ class BeliefPropagation:
             num_parity_check_passes: int = 20, 
             max_iterations: int = 100
             ) -> dict[int, float]:
+        """
+        Run belief propagation to estimate the marginals P(s_i = 0 | r).
+
+        Steps:
+            1. Compute initial bit probabilities.
+            2. Initialise bit to check messages and check to bit messages.
+            3. Perform message updates:
+                - update messages from check nodes to bit nodes
+                - update messages from bit nodes to check nodes
+
+        The algorithm performs passes over all check vertices.
+        After each full pass, the counter increases.
+        Once twenty passes have completed, marginals are returned.
+
+        Args:
+            - received_message dict[int, int]: received bits r_i in {0, 1} for each bit i.
+            - channel_probabilities dict[int, float]: flip probability p_i for each bit.
+            - num_parity_check_passes [int]: number of passes over all check vertices.
+             - max_iterations [int]: maximum number of message updates.
+
+        Returns:
+            dict[int, float]: Maps bit i to its marginal probability.
+        """
         initial_bit_probabilities = self.compute_initial_bit_probabilities(received_message, channel_probabilities)
         bit_to_check_messages, check_to_bit_messages = self.create_initial_messages(initial_bit_probabilities)
         remaining_check_vertices = self.check_vertices.copy()
