@@ -111,17 +111,25 @@ class BeliefPropagation:
     """
     def __init__(self,
                  code: LinearCode):
-        self.code = code
-        self.graph = self.code.graph        
+        self.code: LinearCode = code
+        self.graph: nx.Graph = self.code.graph        
 
-        self.check_vertices: list = [v for v, d in self.graph.nodes(data=True) if d.get('bipartite') == 'check']
-        self.bit_vertices: list = [v for v, d in self.graph.nodes(data=True) if d.get('bipartite') == 'bit']
-        self.check_neighbourhood: dict = {v : list(self.graph.neighbors(v)) for v in self.check_vertices}
-        self.bit_neighbourhood: dict = {v : list(self.graph.neighbors(v)) for v in self.bit_vertices}
+        self.check_vertices: list[int] = [
+            node for node, data in self.graph.nodes(data=True) if data.get('bipartite') == 'check'
+            ]
+        self.bit_vertices: list[int] = [
+            node for node, data in self.graph.nodes(data=True) if data.get('bipartite') == 'bit'
+            ]
+        self.check_neighbourhood: dict[int,list[int]] = {
+            check_vertex : list(self.graph.neighbors(check_vertex)) for check_vertex in self.check_vertices
+            }
+        self.bit_neighbourhood: dict[int,list[int]] = {
+            bit_vertex : list(self.graph.neighbors(bit_vertex)) for bit_vertex in self.bit_vertices
+            }
 
-        self.code_length = len(self.bit_vertices)
-        self.num_parity_check_eqns = len(self.check_vertices)
-        self.code_rank = self.code_length - self.num_parity_check_eqns
+        self.code_length: int = self.code.code_length
+        self.num_parity_checks: int = self.code.num_parity_checks
+        self.code_rank: int = self.code.rank
         
 
     def run(self, 
