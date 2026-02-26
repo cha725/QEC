@@ -145,18 +145,22 @@ class BinaryMatrix:
               (each pivot variable is the xor of the free variables to its right)
         3. Collect each resulting vector. These form a basis of the nullspace.
         """
+        rref, pivots = self._compute_rref
+        pivot_cols = [col for _, col in pivots]
+        free_cols = [col for col in range(self.num_cols) if col not in pivot_cols]
+        basis_vectors = []
         for free in free_cols:
-            vec = np.zeros(n, dtype=bool)
+            vec = np.zeros(self.num_cols, dtype=bool)
             vec[free] = True
-            for row, col in reversed(pivots):
-                s = np.any(M.array[row, col+1:] & vec[col+1:])
-                vec[col] = s
-            basis.append(vec)
-        
-        if basis:
-            return BinaryMatrix(basis)
+            for row, pivot_col in reversed(pivots):
+                row_after_pivot_col = rref[row, pivot_col+1:]
+                vec_after_pivot_col = vec[pivot_col+1:]
+                vec[pivot_col] = np.any(row_after_pivot_col & vec_after_pivot_col)
+            basis_vectors.append(vec)
+        if basis_vectors:
+            return BinaryMatrix(basis_vectors)
         else:
-            return BinaryMatrix([[0]*self.shape[1]])
+            return BinaryMatrix([[0]*self.num_cols])
 
     def __repr__(self):
         return f"Binary matrix: \n {self.array}."
