@@ -136,8 +136,9 @@ class BeliefPropagation:
             received_message: dict,
             channel_probabilities: dict,
             num_parity_check_passes: int = 20, 
-            max_iterations: int = 100
-            ) -> dict[int, float]:
+            max_iterations: int = 100,
+            freeze_threshold: dict[int, float] | None = None
+            ) -> dict[int, tuple[int, float]]:
         """
         Run belief propagation to estimate the marginals P(s_i = 0 | r).
 
@@ -164,6 +165,9 @@ class BeliefPropagation:
         initial_bit_probabilities = self.compute_initial_bit_probabilities(received_message, channel_probabilities)
         bit_to_check_messages, check_to_bit_messages = self.create_initial_messages(initial_bit_probabilities)
         remaining_check_vertices = self.check_vertices.copy()
+        frozen_bits = {}
+        if freeze_threshold is None:
+            freeze_threshold = {bit : 0.0 for bit in self.bit_vertices}
         passes_completed = 0
         for _ in range(max_iterations):
 
@@ -180,6 +184,18 @@ class BeliefPropagation:
                 initial_bit_probabilities, 
                 bit_to_check_messages, 
                 check_to_bit_messages
+            )
+
+            frozen_bits = self._freeze_reliable_bits(
+                frozen_bits,
+                initial_bit_probabilities,
+                bit_to_check_messages,
+                check_to_bit_messages,
+                freeze_threshold)
+            
+            bit_to_check_messages = self._update_frozen_bit_to_check_messages(
+                frozen_bits,
+                bit_to_check_messages
             )
 
             remaining_check_vertices.remove(check_vertex)
@@ -340,6 +356,38 @@ class BeliefPropagation:
                 bit_to_check_messages[bit][target_check] = (p_bit * prod_0) / (p_bit * prod_0 + (1-p_bit) * prod_1)
         return bit_to_check_messages
     
+    def _freeze_reliable_bits(self,
+                              frozen_bits: dict[int, tuple[int | None, float | None]],
+                              initial_bit_probabilities: dict[int, float],
+                              bit_to_check_messages: dict[int, dict[int, float]],
+                              check_to_bit_messages: dict[int, dict[int, float]],
+                              freeze_threshold: dict[int, float]):
+        marginals = self.calculate_bit_marginals(
+            initial_bit_probabilities, 
+            check_to_bit_messages
+        )
+        for bit in bit_to_check_messages.keys():
+            marginal = marginals[bit]
+            if marginal < freeze_threshold[bit]:
+                frozen_bits[bit] = (1, marginal)
+            if marginal > 1 - freeze_threshold[bit]:
+                frozen_bits[bit] = (0, marginal)
+        return frozen_bits
+    
+    def _update_frozen_bit_to_check_messages(self,
+                                             frozen_bits: dict[int, tuple[int | None, float | None]],
+                                             bit_to_check_messages: dict[int, dict[int, float]]
+                                             ) -> dict[int, dict[int, float]]: 
+        for frozen_bit in frozen_bits.keys():
+            frozen_value, _ = frozen_bits[frozen_bit]
+            for check in bit_to_check_messages[frozen_bit].keys():
+                if frozen_value == 0:
+                    bit_to_check_messages[frozen_bit][check] = 1.0
+                else:
+                    bit_to_check_messages[frozen_bit][check] = 0.0
+        return bit_to_check_messages
+
+    
     def calculate_bit_marginals(self, 
                                 initial_bit_probabilities: dict[int, float], 
                                 check_to_bit_messages: dict[int, dict[int, float]]
@@ -369,6 +417,20 @@ class BeliefPropagation:
             p_bit = initial_bit_states[bit]
             marginals[bit] = (p_bit * prod_0) / (p_bit * prod_0 + (1-p_bit) * prod_1)
         return marginals
+    
+    def _return_results(self, frozen_bits, initial_bit_probabilities, check_to_bit_messages):
+        results = {}
+        marginals = self.calculate_bit_marginals(initial_bit_probabilities, check_to_bit_messages)
+        for bit in self.bit_vertices:
+            if bit in frozen_bits.keys():
+                results[bit] = frozen_bits[bit]
+            else:
+                marginal = marginals[bit]
+                if marginal > 0.5:
+                    results[bit] = (0, marginal)
+                else:
+                    results[bit] = (1, marginal)
+        return results
 
 class BPExample:
     """Run a Belief Propagation example on a given LinearCode."""
