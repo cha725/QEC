@@ -127,9 +127,11 @@ class BeliefPropagation:
             bit_vertex : list(self.graph.neighbors(bit_vertex)) for bit_vertex in self.bit_vertices
             }
 
-        self.code_length: int = self.code.code_length
-        self.num_parity_checks: int = self.code.num_parity_checks
-        self.code_rank: int = self.code.rank
+        self.initial_bit_probabilities: dict[int, float] = {}
+        self.bit_to_check_messages: dict[int, dict[int, float]] = {}
+        self.check_to_bit_messages: dict[int, dict[int, float]] = {}
+        self.frozen_bits: dict[int, tuple[int, float]] = {}
+        self.marginals: dict[int, float] = {}
         
 
     def run(self, 
