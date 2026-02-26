@@ -23,53 +23,33 @@ class BinaryMatrix:
         self.num_cols = self.shape[1]
 
     @property
-    def entries(self) -> list[list[int]]:
-        return self._entries
-
-    @property
-    def array(self) -> NDArray[np.bool_]:
-        return self._array
+    def array(self) -> NDArray[np.int_]:
+        return np.array(self, dtype=int)
     
-    def __array__(self, dtype):
+    def __array__(self, dtype, *, copy=True):
         """
         Allows a binary matrix to be treated like a numpy array.
         """
-        return np.array(self._array, dtype=dtype)
-
-    def swap_rows(self, row1: int, row2: int) -> None:
-        """
-        Swap rows 1 and 2 in the matrix.
-
-        Parameters:
-            - row1 (int): The index of the first row to be swapped.
-            - row2 (int): The index of the second row to be swapped.
-        """
-        self._array[[row1, row2], :] = self._array[[row2, row1], :]
-
-    def add_rows(self, source_row: int, target_row: int) -> None:
-        """
-        Add two rows in the matrix.
-        Note: 
-            - Add source_row to target_row.
-            - The source_row row remains untouched.
-        """
-        self._array[target_row, :] ^= self._array[source_row, :]
+        arr = np.array(self._rows, dtype=dtype)
+        if copy:
+            return arr.copy()
+        return arr
 
     @cached_property
     def _rref_algorithm(self) -> tuple["BinaryMatrix", list[tuple[int,...]]]:
         """
         Compute the reduced row echelon form (RREF) of a matrix.
         """
-        M = BinaryMatrix(self._entries)
+        M = self.bool_matrix.copy()
         num_rows, num_cols = M.shape
-        pivot_coords = []
+        pivot_coords: list[tuple[int,int]] = []
         start_row = 0
         for col in range(num_cols):
             if start_row >= num_rows:
                 break
             # Find pivot rows 
             # i.e. rows below start_row that have a nonzero entry in col_idx
-            pivot_rows = [r for r in range(start_row,num_rows) if M.array[r, col]]
+            pivot_rows = [r for r in range(start_row,num_rows) if M[r, col]]
             # if there are no rows with a nonzero entry in col, move on
             if not pivot_rows:
                 continue
@@ -77,11 +57,11 @@ class BinaryMatrix:
             pivot_row = pivot_rows.pop(0)
             # if row has nonzero entry in col add pivot row to make zero (working mod2)
             for row in range(num_rows):
-                if row != pivot_row and M.array[row,col]:
-                    M.add_rows(pivot_row, row)
+                if row != pivot_row and M[row,col]:
+                    M[[row], :] ^= M[[pivot_row], :]
             # swap pivot row with the next available row
             if pivot_row != start_row:
-                M.swap_rows(start_row, pivot_row)
+                M[[start_row, pivot_row], :] = M[[pivot_row, start_row], :]
             pivot_coords.append((start_row, col))
             start_row += 1
         return M, pivot_coords
