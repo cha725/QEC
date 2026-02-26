@@ -145,21 +145,34 @@ class BeliefPropagation:
                 break
             check_to_bit_messages = self.update_check_to_bit_messages(check_vertex, check_to_bit_messages, bit_to_check_messages)
             bit_to_check_messages = self.update_bit_to_check_messages(initial_bit_states, bit_to_check_messages, check_to_bit_messages)
-            previous_vertex = check_vertex
-        return self.compute_marginals(initial_bit_states, check_to_bit_messages)
-
-    def initialise_messages(self, initial_bit_state: dict):
+    def create_initial_messages(self, 
+                                initial_bit_probabilities: dict[int, float]
+                                ) -> tuple[dict[int,dict[int, float]], dict[int,dict[int, float]]]:
         """
-        Create dictionaries to hold the messages to and from bit and check vertices.
-        Initialise bit to check as P(mi given ci=0).
-        Initialise check to bit as 0.0.
+        Create the initial messages for belief propagation algorithm.
+            - Bit to check messages start at P(received_bit | sent_bit = 0).
+            - Check to bit messages start at 0.5.
+        
+        Args:
+            - initial_bit_probabilities (dict[int, float]):
+                A dictionary that maps bit vertices to the initial probability they came from a 0.
+
+        Returns:
+            - bit_to_check_messages (dict[int, dict[int, float]]):
+                The messages from bit vertices to check vertices.
+                In the form of a dictionary that maps a bit vertex to another dictionary whose keys are
+                check vertices and values are the messages 'bit vertex -> check vertex'.
+            - check_to_bit_messages (dict[int, dict[int, float]]):
+                The messages from check vertices to bit vertices.
+                In the form of a dictionary that maps a check vertex to another dictionary whose keys are
+                bit vertices and values are the messages 'check vertex -> bit vertex'.               
         """
         bit_to_check_messages = {bit : {} for bit in self.bit_vertices}
         check_to_bit_messages = {check : {} for check in self.check_vertices}
         for check_vertex, bit_neighbours in self.check_neighbourhood.items():
             for bit_vertex in bit_neighbours:
-                bit_to_check_messages[bit_vertex][check_vertex] = initial_bit_state[bit_vertex]
-                check_to_bit_messages[check_vertex][bit_vertex] = 0.0
+                bit_to_check_messages[bit_vertex][check_vertex] = initial_bit_probabilities[bit_vertex]
+                check_to_bit_messages[check_vertex][bit_vertex] = 0.5
         return bit_to_check_messages, check_to_bit_messages
 
     def compute_initial_bit_probabilities(self,
