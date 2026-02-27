@@ -158,12 +158,13 @@ class RepetitionCode(LinearCode):
         super().__init__([[1]*codeword_length])
 
 
-    def decode(self, message: list[int]) -> list[int]:
+    def majority_vote_decoder(self, received_message: list[int]) -> list[int]:
         """
-        For a repetition code the decoder is majority value.
+        Implements majority vote decoder
         """
-        self._is_valid_received_message(message)
-        return [int(sum(message) > self.length // 2)]
+        if len(received_message) != self.length:
+            raise ValueError(f"Message must be of length {self.length}.")
+        return [sum(received_message) % 2]*self.length
 
 
 class HammingCode(LinearCode):
