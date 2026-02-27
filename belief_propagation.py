@@ -457,13 +457,33 @@ class BPExample:
             print(f"Check {check}: { {bit: f'{val:.3f}' for bit, val in bits.items()} }")
         
             
-    def run_bp(self):
+    def run_bp(self, 
+               num_parity_check_passes: int = 20, 
+               max_iterations: int = 50,
+               print_iteration_summary: bool = False):
         print("\nRunning Belief Propagation.")
-        marginals = self.bp.run(self.message, self.channel_probabilities)
+        bit_results = self.bp.run(
+            self.message, 
+            self.channel_probabilities, 
+            num_parity_check_passes, 
+            max_iterations, 
+            self.freeze_threshold,
+            print_iteration_summary)
+        decoded = []
         print("\nFinal bit marginals:")
-        for bit, prob in marginals.items():
-            print(f"Bit {bit}: {prob:.3f}")
-        return marginals
+        for bit in bit_results.keys():
+            decode_val, prob = bit_results[bit]
+            if not self.bp.bit_neighbourhood[bit]:
+                print(f"Bit {bit}: {prob:.4f} (not seen by parity checks)")
+            else:
+                print(f"Bit {bit}: {prob:.4f}")
+            decoded.append(decode_val)
+        print("\nSent codeword vs decoded codeword:")
+        print(self.codeword)
+        print(decoded)
+        print(f"Sent codeword = decoded codeword? {self.codeword == decoded}")
+
+        return bit_results
 
 
 if __name__ == "__main__":
