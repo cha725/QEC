@@ -101,6 +101,39 @@ class LinearCode(ABC):
         array = (np.array(message) @ self.generator_matrix.array) % 2
         return array.tolist()
     
+    def maximum_likelihood_decoder(self,
+                                   received_message: list[int],
+                                   channel_probabilities: list[float] | None = None
+                                   ) -> list[int]:
+        """
+        WARNING: Computes all 2^k codewords.
+        Returns the codeword that was most likely to be sent given message is received.
+        
+        Args:
+            - received_message (list[int]): message received through noisy channel.
+            - channel_probabilities (list[int]): probability each bit will flip.
+        """
+        if channel_probabilities is None:
+            channel_probabilities = [0.1]*self.length
+        if len(channel_probabilities) != self.length:
+            raise ValueError(f"Channel probabilities must be of length {self.length}.")
+        if len(received_message) != self.length:
+            raise ValueError(f"Message must be of length {self.length}.")
+        most_likely_codeword = [0]*self.length
+        most_likely_codeword_prob = 0
+        for codeword in self.codewords:       
+            codeword_prob = 1
+            for bit_idx in range(self.length):
+                bit_flip_prob = channel_probabilities[bit_idx]
+                if codeword[bit_idx] != received_message[bit_idx]:
+                    codeword_prob *= bit_flip_prob
+                else:
+                    codeword_prob *= (1-bit_flip_prob)
+            if codeword_prob > most_likely_codeword_prob:
+                most_likely_codeword = codeword
+                most_likely_codeword_prob = codeword_prob
+        return most_likely_codeword
+
         """
         Transmit codeword over a noisy channel with given bit flip probabilities.
         """
