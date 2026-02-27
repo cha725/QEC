@@ -64,18 +64,17 @@ class LinearCode(ABC):
         self.num_parity_checks = self.parity_check_matrix.rank
         self.parity_checks = self.parity_check_matrix.basis
 
-
-    def validate_code(self):
+    def _validate_code(self):
         """
         Check generator and parity check matrices are compatible.
         """
-        if self.rank < self.generator_matrix.rank:
-            raise ValueError("Rank of parity check matrix is too small.")
-        if self.rank > self.generator_matrix.rank:
-            raise ValueError("Rank of parity check matrix is too large.")
-        M = np.matmul(self.generator_matrix.array, self.parity_check_matrix.array.T)
-        if not np.all(M % 2 == 0):
-            raise ValueError("Generator and parity check matrices are not orthogonal.")
+        if self.generator_matrix.num_cols != self.parity_check_matrix.num_cols:
+            raise ValueError("Generator and parity check matrix must have the same number of columns")
+        code_length = self.generator_matrix.num_cols
+        if code_length != self.generator_matrix.rank + self.parity_check_matrix.rank:
+            raise ValueError("")
+        if not self.generator_matrix.is_perpendicular_to(self.parity_check_matrix):
+            raise ValueError("Generator and parity check matrix must be perpendicular.")
 
     def message_space(self) -> list[list[int]]:
         """
