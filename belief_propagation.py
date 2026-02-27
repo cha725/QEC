@@ -416,10 +416,12 @@ class BeliefPropagation:
                 results[bit] = (value, marginal)
         return results
 
+
 class BPExample:
     """Run a Belief Propagation example on a given LinearCode."""
     
-    def __init__(self, code: LinearCode, 
+    def __init__(self, 
+                 code: LinearCode, 
                  channel_probabilities: dict[int, float] | None = None,
                  freeze_threshold: dict[int, float] | None = None):
         self.code = code
@@ -435,10 +437,10 @@ class BPExample:
 
         self.codeword = code.choose_random_codeword()
         
-        self.transmitted = code.transmit_codeword(self.codeword,
+        self.received_message = code.transmit_codeword(self.codeword,
                                                   list(channel_probabilities.values()))
         
-        self.message = {bit: self.transmitted[bit_idx] 
+        self.message = {bit: self.received_message[bit_idx] 
                         for bit_idx, bit in enumerate(self.bp.bit_vertices)}
         
         self.bp._initialise_bit_probabilities(self.message, self.channel_probabilities)
@@ -447,21 +449,17 @@ class BPExample:
     def print_setup(self):
         print(f"\n=== Code:")
         print(self.code.generator_matrix.array)
-        print("\nSelected codeword:")
-        print(f"Bits: {self.codeword}\n")
-        print("Transmitted message through channel:")
-        print(self.transmitted)
+        print("\nSelected codeword vs received message:")
+        print(f"\n{self.codeword}")
+        print(f"\n{self.received_message}")
         print("\nParity check equations:")
-        for idx, eq in enumerate(self.code.parity_checks):
-            print(f"Check {idx}: {eq}")
+        for check in self.code.print_parity_checks().values():
+            print(f"{check}")
         print("\nBelief Propagation Graph:")
         print(f"Check vertices: {self.bp.check_vertices}")
         print(f"Bit vertices: {self.bp.bit_vertices}")
         print(f"Check neighbourhood: {self.bp.check_neighbourhood}")
         print(f"Bit neighbourhood: {self.bp.bit_neighbourhood}")
-        print("\nInitial bit states:")
-        for bit, state in self.bp.initial_bit_probabilities.items():
-            print(f"Bit {bit}: {state:.3f}")
         print("\nInitial bit to check messages:")
         for bit, checks in self.bp.bit_to_check_messages.items():
             print(f"Bit {bit}: { {chk: f'{val:.3f}' for chk, val in checks.items()} }")
