@@ -469,14 +469,12 @@ class BPExample:
         
             
     def run_bp(self, 
-               num_parity_check_passes: int = 20, 
-               max_iterations: int = 50,
+               max_iterations: int | None = None,
                print_iteration_summary: bool = False):
         print("\nRunning Belief Propagation.")
         bit_results = self.bp.run(
             self.message, 
             self.channel_probabilities, 
-            num_parity_check_passes, 
             max_iterations, 
             self.freeze_threshold,
             print_iteration_summary)
@@ -509,12 +507,18 @@ if __name__ == "__main__":
 
     from linearcodes import RepetitionCode, RandomLDPC
 
-    code = RandomLDPC(7, 3, [2])
-    example = BPExample(code)
-    example.print_setup()
-    marginals = example.run_bp()
+    code_length = 25
+    num_parity_checks = random.choice(range(2,21))
+    parity_check_weights = [random.choice(range(3,5))]
+    num_examples = 1
 
-    code = RepetitionCode(3)
-    example = BPExample(code)
-    example.print_setup()
-    example.run_bp()
+    for _ in range(num_examples):
+        code = RandomLDPC(code_length, num_parity_checks, parity_check_weights)
+        example = BPExample(code)
+        example.print_setup()
+        marginals = example.run_bp()
+
+    # code = RepetitionCode(21)
+    # example = BPExample(code)
+    # example.print_setup()
+    # example.run_bp(print_iteration_summary=True)
