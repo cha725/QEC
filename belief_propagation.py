@@ -2,7 +2,7 @@ import networkx as nx
 import random
 from linearcodes import LinearCode
 
-class MessagePassingTree:
+class MessagePassing:
     """
     Implements a message passing algorithm on a NetworkX tree.
     Algorithm sends integer messages, adding them at each iteration.
@@ -101,6 +101,16 @@ def find_number_vertices_in_random_tree(max_num_vertices: int = 50, num_iteratio
     final_info = mp.run(num_iterations)
     return (final_info[0], final_info[1][0])        
     
+# for _ in range(10):
+#     iteration, num_vertices = find_number_vertices_in_random_tree(1000, 1000)
+#     print(f"After {iteration} iterations computed the tree has {num_vertices} vertices.")
+
+# three_cycle = nx.Graph()
+# three_cycle.add_nodes_from([0,1,2])
+# three_cycle.add_edges_from([(0,1),(1,2),(2,0)])
+# mp_cycle = MessagePassing(three_cycle)
+
+# print(mp_cycle.run(max_interations=10, verbose=True))
 
 class BeliefPropagation:
     """
