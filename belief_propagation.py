@@ -434,13 +434,12 @@ class BPExample:
     def print_setup(self):
         print(f"\n=== Code:")
         print(self.code.generator_matrix.array)
-        print(f"Codewords: {len(self.code.codewords)}")
         print("\nSelected codeword:")
-        print(f"Bits: {self.codeword.bits}\n")
+        print(f"Bits: {self.codeword}\n")
         print("Transmitted message through channel:")
         print(self.transmitted)
         print("\nParity check equations:")
-        for idx, eq in enumerate(self.code.parity_check_eqns):
+        for idx, eq in enumerate(self.code.parity_checks):
             print(f"Check {idx}: {eq}")
         print("\nBelief Propagation Graph:")
         print(f"Check vertices: {self.bp.check_vertices}")
@@ -448,14 +447,15 @@ class BPExample:
         print(f"Check neighbourhood: {self.bp.check_neighbourhood}")
         print(f"Bit neighbourhood: {self.bp.bit_neighbourhood}")
         print("\nInitial bit states:")
-        for bit, state in self.initial_bit_states.items():
+        for bit, state in self.bp.initial_bit_probabilities.items():
             print(f"Bit {bit}: {state:.3f}")
         print("\nInitial bit to check messages:")
-        for bit, checks in self.bit_to_check_messages.items():
+        for bit, checks in self.bp.bit_to_check_messages.items():
             print(f"Bit {bit}: { {chk: f'{val:.3f}' for chk, val in checks.items()} }")
         print("\nInitial check to bit messages:")
-        for check, bits in self.check_to_bit_messages.items():
+        for check, bits in self.bp.check_to_bit_messages.items():
             print(f"Check {check}: { {bit: f'{val:.3f}' for bit, val in bits.items()} }")
+        
             
     def run_bp(self):
         print("\nRunning Belief Propagation.")
