@@ -304,11 +304,9 @@ class BeliefPropagation:
                 prod *= (1-2*prob_other_bit_0)
             self.check_to_bit_messages[check_vertex][target_bit] = 0.5*(1 - prod)
 
-    def _update_bit_to_check_messages(self):        
+    def _update_bit_to_check_messages(self, check_vertex: int):        
         """
         Update the messages from bit vertices to check vertices.
-        TODO: this updates all bit vertices, probably only want to do the ones connected to
-        the current check vertex.
 
         For bit i and check a, updates using the formula:
             P(r_i | s_i = 0)*( prod_{neighbour checks except a} message from check to i) / norm
@@ -318,7 +316,7 @@ class BeliefPropagation:
             - bit_to_check_messages (dict[int, dict[int, float]]): current bit to check messages.
             - check_to_bit_messages (dict[int, dict[int, float]]): current check to bit messages.
         """
-        for bit in self.bit_vertices:
+        for bit in self.check_neighbourhood[check_vertex]:
             bit_neighbourhood = self.bit_neighbourhood[bit]
             for target_check in bit_neighbourhood:
                 prod_0 = 1.0
@@ -326,6 +324,12 @@ class BeliefPropagation:
                 for other_check in bit_neighbourhood:
                     if other_check == target_check:
                         continue
+                    message = self.check_to_bit_messages[other_check][bit]
+                    prod_0 *= message
+                    prod_1 *= 1 - message
+                prob_bit_0 = self.initial_bit_probabilities[bit]
+                self.bit_to_check_messages[bit][target_check] = (prob_bit_0 * prod_0) / (prob_bit_0 * prod_0 + (1-prob_bit_0) * prod_1)
+    
     def _update_frozen_bits(self, freeze_threshold: dict[int, float]):
         self._update_bit_marginals()
         for bit in self.bit_to_check_messages.keys():
