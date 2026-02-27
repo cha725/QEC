@@ -103,11 +103,11 @@ def find_number_vertices_in_random_tree(max_num_vertices: int = 50, num_iteratio
     
 
 class BeliefPropagation:
-
     """
-    Edge set must only contain ordered edges.
-    The check vertices will be the sources of the edges
-    and the bit vertices will be the targets of the edges.
+    Implements belief propagation for a linear code.
+
+    Attributes:
+        - code (LinearCode): the code used to encode messages
     """
     def __init__(self,
                  code: LinearCode):
