@@ -215,6 +215,9 @@ class LinearCode(ABC):
         plt.title(title)
         plt.show()
 
+    def __repr__(self):
+        return f"LinearCode(G={self.generator_matrix})"
+
 class RepetitionCode(LinearCode):
     """
     Represents a repetition code as a subclass of LinearCode.
