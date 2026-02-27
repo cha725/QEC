@@ -154,17 +154,26 @@ class LinearCode(ABC):
                 received_message.append(bit)
         return received_message
     
-    def send_and_decode_message(self, codeword: list[int], flip_probabilities: list[float] | None = None, verbose: bool = False) -> list[int] | tuple[list[int],list[int],list[int]]:
+    def send_and_decode_maximum_likelihood(self,
+                                           codeword: list[int],
+                                           channel_probabilities: list[float] | None = None,
+                                           return_received_message: bool = False
+                                           ) -> list[int] | tuple[list[int],list[int]]:
         """
-        Send a codeword and decode received message over a noisy channel.
-        If verbose return encoded, received and decoded messages.
-        Else return just decoded message.
+        WARNING: Computes all 2^k codewords.
+        Send a codeword over a noisy channel and decode received message using maximum likelihood.
+
+        Returns:
+            - If return_received_message is False:
+                (list[int]): decoded codeword as a list of bits.
+            - If return_received_message is True:
+                (list[int], list[int]): message received through the noisy channel and
+                    the decoded codeword, both as a list of bits.
         """
-        encoded = self.encode(codeword)
-        received = self.transmit_codeword(encoded, flip_probabilities)
-        decoded = self.decode(received)
-        if verbose:
-            return (encoded, received, decoded)
+        received = self.transmit_codeword(codeword, channel_probabilities)
+        decoded = self.maximum_likelihood_decoder(received)
+        if return_received_message:
+            return received, decoded
         return decoded 
 
     def syndrome(self, vector: NDArray):
