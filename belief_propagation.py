@@ -139,7 +139,7 @@ class BeliefPropagation:
             channel_probabilities: dict,
             num_parity_check_passes: int = 20, 
             max_iterations: int = 100,
-            freeze_threshold: dict[int, float] | None = None
+            print_iteration_summary: bool = False,
             ) -> dict[int, tuple[int, float]]:
         """
         Run belief propagation to estimate the marginals P(s_i = 0 | r).
@@ -180,6 +180,9 @@ class BeliefPropagation:
             self._update_bit_to_check_messages()
             self._update_frozen_bits(freeze_threshold)
 
+            if print_iteration_summary:
+                self._print_iteration_summary(iteration, check_vertex)
+
             remaining_check_vertices.remove(check_vertex)
             if not remaining_check_vertices:
                 passes_completed += 1
@@ -189,6 +192,22 @@ class BeliefPropagation:
                     break
                 
         return self._assemble_bit_results()
+    
+    def _print_iteration_summary(self, iteration: int, check_vertex):
+        print(f"\n=== Iteration {iteration} Summary ===")
+        print(f"\nCurrent check vertex: {check_vertex}")
+        print(f"\nCheck to bit messages:")
+        for check, bits in self.check_to_bit_messages.items():
+            print(f"Check {check}: { {bit: f'{val:.3f}' for bit, val in bits.items()} }")
+        print(f"\nBit to check messages:")
+        for bit, checks in self.bit_to_check_messages.items():
+            print(f"Bit {bit}: { {chk: f'{val:.3f}' for chk, val in checks.items()} }")
+        if not self.frozen_bits:
+            print(f"\nNo bits frozen.")
+        else:
+            print(f"\nFrozen bits:")
+            for bit, final_data in self.frozen_bits.items():
+                print(f"Frozen bit {bit} at value {final_data[0]} (prob = {final_data[1]})")
 
     def _initialise_messages(self):
         """
