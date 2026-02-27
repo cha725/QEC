@@ -482,22 +482,30 @@ class BPExample:
             max_iterations, 
             self.freeze_threshold,
             print_iteration_summary)
-        decoded = []
-        print("\nFinal bit marginals:")
-        for bit in bit_results.keys():
-            decode_val, prob = bit_results[bit]
-            if not self.bp.bit_neighbourhood[bit]:
-                print(f"Bit {bit}: {prob:.4f} (not seen by parity checks)")
-            else:
-                print(f"Bit {bit}: {prob:.4f}")
-            decoded.append(decode_val)
-        print("\nSent codeword vs decoded codeword:")
-        print(self.codeword)
-        print(decoded)
-        print(f"Sent codeword = decoded codeword? {self.codeword == decoded}")
+        
+        print("\nFinal summary:")
+        header = f"{'Bit':>3} | {'Sent':>4} | {'Received':>8} | {'Decoded':>7} | {'Marginal':>8} | {'Correct?':>8} | {'Frozen?':>7}"
+        print(header)
+        print("-"*len(header))
+
+        rows = []
+        for idx in range(self.code.length):
+            sent = self.codeword[idx]
+            recv = self.received_message[idx]
+            dec, marg = bit_results[idx]
+            flag = sent == dec
+            try:
+                self.bp.frozen_bits[idx]
+                frozen = True
+            except:
+                frozen = False
+            rows.append((idx, sent, recv, dec, marg, flag, frozen))
+        
+        for b, s, r, d, p, flag, frozen in rows:
+            print(f"{b:>3} | {s:>4} | {r:>8} | {d:>7} | {p:>8.3f} | {str(flag):>8} | {str(frozen):>7}")
 
         return bit_results
-
+    
 
 if __name__ == "__main__":
 
