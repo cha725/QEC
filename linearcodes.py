@@ -194,7 +194,26 @@ class LinearCode(ABC):
         z_vecs = [list(G[idx,:]) for idx in range(G.shape[0])]
         H = self.parity_check_matrix.array
         x_vecs = [list(H[idx,:]) for idx in range(H.shape[0])]
-        return CSSStabiliserCode(z_vecs=z_vecs, x_vecs=x_vecs)
+    
+    @cached_property
+    def tanner_graph(self) -> nx.Graph:
+        G = nx.Graph()
+        for bit_idx in range(self.length):
+            G.add_node(bit_idx, bipartite='bit')
+        for check_idx in range(self.num_parity_checks):
+            G.add_node(check_idx + self.length, bipartite='check')
+        for pc_idx, parity_check in enumerate(self.parity_checks):
+            for bit_idx, bit in enumerate(parity_check):
+                if bit == 1:
+                    G.add_edge(bit_idx, self.length + pc_idx)
+        return G
+    
+    def draw_graph(self, title: str = "LDPC Bipartite Graph", bits_colour: str = "skyblue", pc_colour: str = "lightgreen"):
+        G = self.tanner_graph
+        pos = nx.bipartite_layout(G, nodes=range(self.length))
+        nx.draw(G, pos, with_labels=True, node_color=[bits_colour]*self.length + [pc_colour]*self.num_parity_checks)
+        plt.title(title)
+        plt.show()
 
 class RepetitionCode(LinearCode):
     """
