@@ -134,13 +134,20 @@ class LinearCode(ABC):
                 most_likely_codeword_prob = codeword_prob
         return most_likely_codeword
 
+    def transmit_codeword(self, 
+                          codeword: list[int], 
+                          channel_probabilities: list[float] | None = None
+                          ) -> list[int]:
         """
         Transmit codeword over a noisy channel with given bit flip probabilities.
+
+        Returns:
+            - (list[int]): received message as a list of bits.
         """
-        if flip_probabilities is None:
-            flip_probabilities = [0.1]*self.length
+        if channel_probabilities is None:
+            channel_probabilities = [0.1]*self.length
         received_message = []
-        for bit, p in zip(codeword, flip_probabilities):
+        for bit, p in zip(codeword, channel_probabilities):
             if np.random.rand() < p:
                 received_message.append(1 - bit)
             else:
