@@ -92,17 +92,9 @@ class LinearCode(ABC):
         """
         if len(message) != self.rank:
             raise ValueError(f"Message must have length {self.rank}.")
-        mat_message = np.array(message, dtype=bool)
-        bool_generator_mat = self.generator_matrix.array.astype(bool)
-        bool_encoded = np.matmul(mat_message, bool_generator_mat, dtype=bool)
-        encoded = bool_encoded.astype(int)
-        return encoded.tolist()
+        array = (np.array(message) @ self.generator_matrix.array) % 2
+        return array.tolist()
     
-    def decode(self, message: list[int]) -> list[int]:
-        """ Method to decode a received message. To be implemented in subclasses. """
-        return []
-    
-    def transmit_codeword(self, codeword: list[int], flip_probabilities: list[float] | None = None) -> list[int]:
         """
         Transmit codeword over a noisy channel with given bit flip probabilities.
         """
