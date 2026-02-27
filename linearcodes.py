@@ -84,6 +84,12 @@ class LinearCode(ABC):
         """
         return self.generator_matrix.rowspace_vectors
     
+    def choose_random_codeword(self) -> list[int]:
+        """
+        Returns a random codeword from the code as a list of bits.
+        """
+        coeffs = [random.choice([0,1]) for _ in range(self.rank)]
+        return self.encode(coeffs)
 
     def encode(self, message: list[int]) -> list[int]:
         """
