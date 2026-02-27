@@ -137,8 +137,8 @@ class BeliefPropagation:
     def run(self, 
             received_message: dict,
             channel_probabilities: dict,
-            num_parity_check_passes: int = 20, 
-            max_iterations: int = 100,
+            max_iterations: int | None = None,
+            freeze_threshold: dict[int, float] | None = None,
             print_iteration_summary: bool = False,
             ) -> dict[int, tuple[int, float]]:
         """
@@ -187,12 +187,8 @@ class BeliefPropagation:
 
             remaining_check_vertices.remove(check_vertex)
             if not remaining_check_vertices:
-                passes_completed += 1
-                if passes_completed < num_parity_check_passes:
-                    remaining_check_vertices = self.check_vertices.copy()
-                else:
-                    break
-                
+                remaining_check_vertices = self.check_vertices.copy()
+
         return self._assemble_bit_results()
     
     def _print_iteration_summary(self, iteration: int, check_vertex):
