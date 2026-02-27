@@ -76,11 +76,14 @@ class LinearCode(ABC):
         if not self.generator_matrix.is_perpendicular_to(self.parity_check_matrix):
             raise ValueError("Generator and parity check matrix must be perpendicular.")
 
-    def message_space(self) -> list[list[int]]:
+    @cached_property
+    def codewords(self) -> set[list[int]]:
         """
-        Return the list of valid messages to be encoded.
+        WARNING: Computes ALL 2^k codewords.
+        Returns a set of all codewords as lists of bits.
         """
-        return [list(entry) for entry in product([0,1], repeat=self.rank)]
+        return self.generator_matrix.rowspace_vectors
+    
 
     def encode(self, message: list[int]) -> list[int]:
         """
