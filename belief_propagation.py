@@ -112,8 +112,8 @@ class BeliefPropagation:
     def __init__(self,
                  code: LinearCode):
         self.code: LinearCode = code
-        self.graph: nx.Graph = self.code.graph        
-
+        self.graph: nx.Graph = self.code.tanner_graph        
+        
         self.check_vertices: list[int] = [
             node for node, data in self.graph.nodes(data=True) if data.get('bipartite') == 'check'
             ]
