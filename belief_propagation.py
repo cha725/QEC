@@ -157,19 +157,25 @@ class BeliefPropagation:
         Steps:
             1. Compute initial bit probabilities.
             2. Initialise bit to check messages and check to bit messages.
-            3. Perform message updates:
+            3. Freeze any bits that are not seen by the check vertices.
+            4. Perform message updates:
                 - update messages from check nodes to bit nodes
                 - update messages from bit nodes to check nodes
-
-        The algorithm performs passes over all check vertices.
-        After each full pass, the counter increases.
-        Once twenty passes have completed, marginals are returned.
+            5. Check if the decoded message is a codeword.
+            6. Freeeze any bit with marginal probability within the freeze
+                threshold of 0.0 or 1.0.
+            7. Choose new check vertex; if all have been passed over already
+                then choose any check vertex at random.
 
         Args:
             - received_message dict[int, int]: received bits r_i in {0, 1} for each bit i.
             - channel_probabilities dict[int, float]: flip probability p_i for each bit.
-            - num_parity_check_passes [int]: number of passes over all check vertices.
-             - max_iterations [int]: maximum number of message updates.
+            - max_iterations [int]: maximum number of message updates.
+                Defaults to (code length)^2 if not provided.
+            - freeze_threshold (dict[int, float] | None): Probability threshold for freezing bits.
+                Bits with marginals closer to 0.0 or 1.0 than this threshold are frozen.
+                Defaults to 0.01 for all bits if not provided.
+            - print_iteration_summary (bool): If True, prints the state of messages each iteration.
 
         Returns:
             dict[int, float]: Maps bit i to its marginal probability.
