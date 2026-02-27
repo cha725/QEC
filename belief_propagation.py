@@ -427,6 +427,7 @@ class BeliefPropagation:
         return results
 
 
+
 class BPExample:
     """Run a Belief Propagation example on a given LinearCode."""
     
