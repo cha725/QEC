@@ -177,7 +177,9 @@ class BeliefPropagation:
                 break
 
             self._update_check_to_bit_messages(check_vertex)
-            self._update_bit_to_check_messages()
+            self._update_bit_to_check_messages(check_vertex)
+            if self._is_codeword():
+                break
             self._update_frozen_bits(freeze_threshold)
 
             if print_iteration_summary:
@@ -372,6 +374,13 @@ class BeliefPropagation:
             prob_bit_0 = self.initial_bit_probabilities[bit]
             self.marginals[bit] = (prob_bit_0 * prod_0) / (prob_bit_0 * prod_0 + (1 - prob_bit_0) * prod_1)
     
+    def _is_codeword(self) -> bool:
+        results = self._assemble_bit_results()
+        codeword = [results[bit][0] for bit in results.keys()]
+        syndrome = self.code.syndrome(codeword)
+        return not syndrome
+
+
     def _assemble_bit_results(self) -> dict[int, tuple[int, float]]:
         """
         Combine frozen bits and remaining bits to produce final estimates.
