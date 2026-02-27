@@ -166,11 +166,13 @@ class BeliefPropagation:
         """
         self._initialise_bit_probabilities(received_message, channel_probabilities)
         self._initialise_messages()
+        self._initialise_frozen_bits()
         remaining_check_vertices = self.check_vertices.copy()
         if freeze_threshold is None:
             freeze_threshold = {bit : 0.01 for bit in self.bit_vertices}
-        passes_completed = 0
-        for _ in range(max_iterations):
+        if max_iterations is None:
+            max_iterations = self.code.length**2
+        for iteration in range(max_iterations):
 
             check_vertex = self._select_check_vertex(remaining_check_vertices)
             if check_vertex is None:
@@ -179,6 +181,7 @@ class BeliefPropagation:
             self._update_check_to_bit_messages(check_vertex)
             self._update_bit_to_check_messages(check_vertex)
             if self._is_codeword():
+                print("Found a codeword!")
                 break
             self._update_frozen_bits(freeze_threshold)
 
@@ -189,6 +192,8 @@ class BeliefPropagation:
             if not remaining_check_vertices:
                 remaining_check_vertices = self.check_vertices.copy()
 
+            num_iterations = iteration + 1
+        print(f"Number of iterations: {num_iterations}/{max_iterations}")
         return self._assemble_bit_results()
     
     def _print_iteration_summary(self, iteration: int, check_vertex):
