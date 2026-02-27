@@ -270,6 +270,18 @@ class BeliefPropagation:
                 initial_bit_probs[bit] = prob_bit_flip
         self.initial_bit_probabilities = initial_bit_probs
 
+    def _initialise_frozen_bits(self):
+        """
+        Freeze the bits that are not connected to any parity check vertices.
+        """
+        for bit in self.bit_vertices:
+            if not self.bit_neighbourhood[bit]:
+                marginal = self.initial_bit_probabilities[bit]
+                if marginal > 0.5:
+                    self.frozen_bits[bit] = (0, marginal)
+                else:
+                    self.frozen_bits[bit] = (1, marginal)
+
     def _select_check_vertex(self, candidates: list[int]) -> int | None:
         """
         Select the next check vertex to update.
