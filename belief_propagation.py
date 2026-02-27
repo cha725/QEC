@@ -406,25 +406,30 @@ class BeliefPropagation:
 class BPExample:
     """Run a Belief Propagation example on a given LinearCode."""
     
-    def __init__(self, code: LinearCode, channel_prob: float = 0.25):
+    def __init__(self, code: LinearCode, 
+                 channel_probabilities: dict[int, float] | None = None,
+                 freeze_threshold: dict[int, float] | None = None):
         self.code = code
-        self.channel_prob = channel_prob
+
+        if channel_probabilities is None:
+            channel_probabilities = {bit : 0.1 for bit in range(self.code.length)}
+        self.channel_probabilities = channel_probabilities
+        if freeze_threshold is None:
+            freeze_threshold = {bit : p**2 for bit, p in self.channel_probabilities.items()}
+        self.freeze_threshold = freeze_threshold
+
         self.bp = BeliefPropagation(code)
+
+        self.codeword = code.choose_random_codeword()
         
-        self.codeword = random.choice(code.codewords)
-        
-        self.transmitted = code.transmit_codeword(self.codeword.bits,
-                                                  [channel_prob]*code.length)
+        self.transmitted = code.transmit_codeword(self.codeword,
+                                                  list(channel_probabilities.values()))
         
         self.message = {bit: self.transmitted[bit_idx] 
                         for bit_idx, bit in enumerate(self.bp.bit_vertices)}
-        self.channel_probabilities = {bit: channel_prob for bit in self.bp.bit_vertices}
         
-        self.initial_bit_states = self.bp.initialise_bit_state(self.message,
-                                                               self.channel_probabilities)
-        self.bit_to_check_messages, self.check_to_bit_messages = self.bp.initialise_messages(
-            self.initial_bit_states
-        )
+        self.bp._initialise_bit_probabilities(self.message, self.channel_probabilities)
+        self.bp._initialise_messages()
         
     def print_setup(self):
         print(f"\n=== Code:")
