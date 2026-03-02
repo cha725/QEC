@@ -7,6 +7,15 @@ It is intended to be suitable for undergraduates with basic linear algebra and p
 
 The project is currently organised into three Jupyter notebooks with accompanying Python files.
 
+### Python files
+
+1. binary__RREF.py: contains BinaryMatrix class to compute row reduced echelon form of a binary matrix.
+2. linearcodes.py: contains LinearCode class and RepetitionCode, HammingCode, LDPCCode, RandomLDPC code subclasses.
+3. belief_propagation.py: contains MessagePassing and BeliefPropagation class.
+4. stabilizercodes.py: contains Stabilizer and StabilizerCode class.
+
+### Jupyter Notebooks
+
 1. **Classical Error Correction**
 
 This notebook introduces the motivation for classical error correction and the structure of linear codes. 
