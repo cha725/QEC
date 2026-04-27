@@ -176,15 +176,14 @@ class LinearCode(ABC):
             return received, decoded
         return decoded 
 
-    def syndrome(self, vector: NDArray):
+    def syndrome(self, vector: list[int]) -> list[int]:
         """
         Computes syndrome of vector.
         Returns Hv^T where v is the vector and H is the parity check matrix.
         """
-        if vector.shape != [1, self.code_length]:
-            raise ValueError(f"Invalid vector size. Must be [1,{self.code_length}].")
-        M = np.matmul(vector.T, self.parity_check_matrix.array, dtype=bool)
-        return np.array(M, dtype=int)
+        vector_matrix = BinaryMatrix([[v] for v in vector])
+        mult_matrix = self.parity_check_matrix.multiply(vector_matrix)
+        return mult_matrix.array.transpose().tolist()[0]
 
     def css_code_from_linear(self):
         """
