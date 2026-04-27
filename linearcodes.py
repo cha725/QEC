@@ -185,6 +185,9 @@ class LinearCode(ABC):
         mult_matrix = self.parity_check_matrix.multiply(vector_matrix)
         return mult_matrix.array.transpose().tolist()[0]
 
+    def is_codeword(self, vector: list[int]) -> bool:
+        return [0]*self.num_parity_checks == self.syndrome(vector)
+
     def css_code_from_linear(self):
         """
         Create corresponding CSS code.
