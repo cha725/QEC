@@ -213,6 +213,7 @@ if __name__ == "__main__":
             rref = self.bm.rref
             generator = self.bm.rowspace
             nullspace = self.bm.nullspace
+            elements = self.bm.rowspace_vectors
             if verbose:
                 print(f"\n=== Matrix === \n{self.bm.array}")
                 print(f"\nRREF: \n{rref}")
@@ -220,5 +221,6 @@ if __name__ == "__main__":
                 print(f"\nGenerator matrix: \n{generator}")
                 print(f"\nNullspace of M: \n{nullspace}")
                 print(f"\nCheck generator is perp to nullspace: {generator.is_perpendicular_to(nullspace)}")
+                print(f"\nElements: {elements}")
             return rref, generator, nullspace
         
