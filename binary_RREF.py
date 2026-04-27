@@ -13,14 +13,20 @@ class BinaryMatrix:
     """
     def __init__(self,
                  rows: list[list[int]]):
-        num_cols = len(rows[0])
+        if not rows:
+            num_cols = 0
+        else:
+            num_cols = len(rows[0])
         if any(len(row) != num_cols for row in rows):
             raise ValueError(f"All rows must have the same length.")
         self._rows = rows
         self.bool_matrix = np.array(self, dtype=bool, copy=True)
         self.shape = self.bool_matrix.shape
         self.num_rows = self.shape[0]
-        self.num_cols = self.shape[1]
+        try:    
+            self.num_cols = self.shape[1]
+        except:
+            self.num_cols = 0
 
     @property
     def array(self) -> NDArray[np.int_]:
