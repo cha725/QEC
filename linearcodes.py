@@ -202,13 +202,11 @@ class LinearCode(ABC):
         G = nx.Graph()
         for bit_idx in range(self.length):
             G.add_node(bit_idx, bipartite='bit')
-        for check_idx in range(self.num_parity_checks):
-            check_label = string.ascii_lowercase[check_idx]
+        for check_label, check in self.parity_checks.items():
             G.add_node(check_label, bipartite='check')
-        for pc_idx, parity_check in enumerate(self.parity_checks):
-            for bit_idx, bit in enumerate(parity_check):
+            for bit_idx, bit in enumerate(check):
                 if bit == 1:
-                    G.add_edge(bit_idx, string.ascii_lowercase[pc_idx])
+                    G.add_edge(bit_idx, check_label)
         return G
     
     def draw_graph(self, title: str = "LDPC Bipartite Graph", bits_colour: str = "skyblue", pc_colour: str = "lightgreen"):
