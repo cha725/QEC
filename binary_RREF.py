@@ -111,22 +111,24 @@ class BinaryMatrix:
         return len(self.basis)
     
     @cached_property
-    def rowspan_vectors(self) -> set[list[int]]:
+    def rowspace_vectors(self) -> list[list[int]]:
         """
+        WARNING: Computes ALL vectors in the rowspace.
+        
         Returns:
             - set[list[int]]: the set of vectors in the span of the basis.
         """
         basis = self.basis
         if not basis:
-            return [0]*self.num_cols
+            return [[0]*self.num_cols]
         elements = set()
         for coeffs in product([0,1], repeat=self.rank):
             elt = [0]*self.num_cols
             for coeff, vec in zip(coeffs, basis):
                 if coeff:
-                    elt ^= vec
-            elements += elt
-        return elements
+                    elt = [elt_bit ^ vec_bit for elt_bit, vec_bit in zip(elt, vec)]
+            elements.add(tuple(elt))
+        return list(elements)
 
     @cached_property
     def nullspace(self) -> "BinaryMatrix":
