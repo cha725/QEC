@@ -216,6 +216,17 @@ class LinearCode(ABC):
         plt.title(title)
         plt.show()
 
+    def print_parity_checks(self):
+        """
+        Print the parity check equations nicely.
+        """
+        print_statement: dict[str,str] = {}
+        for check_label, check in self.parity_checks.items():
+            terms = [f"b{bit_idx}" for bit_idx, bit in enumerate(check) if bit == 1]
+            readable_eqn = " + ".join(terms) if terms else "0"
+            print_statement[check_label] = f"Check {check_label}: {readable_eqn}"
+        return print_statement
+
     def __repr__(self):
         return f"LinearCode(G={self.generator_matrix})"
 
