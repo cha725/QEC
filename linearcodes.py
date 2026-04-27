@@ -62,7 +62,9 @@ class LinearCode(ABC):
         self.generators = self.generator_matrix.basis
 
         self.num_parity_checks = self.parity_check_matrix.rank
-        self.parity_checks = self.parity_check_matrix.basis
+        self.parity_checks: dict[str,list[int]] = {
+            string.ascii_lowercase[idx] : basis for idx, basis in enumerate(self.parity_check_matrix.basis)
+        }
 
     def _validate_code(self):
         """
