@@ -51,22 +51,21 @@ class BinaryMatrix:
             - list[tuple[int,int]]: list of pivot coordinates used in the RREF algorithm
         """
         M = self.bool_matrix.copy()
-        num_rows, num_cols = M.shape
         pivot_coords: list[tuple[int,int]] = []
         start_row = 0
-        for col in range(num_cols):
-            if start_row >= num_rows:
+        for col in range(self.num_cols):
+            if start_row >= self.num_rows:
                 break
             # Find pivot rows 
             # i.e. rows below start_row that have a nonzero entry in col_idx
-            pivot_rows = [r for r in range(start_row,num_rows) if M[r, col]]
+            pivot_rows = [r for r in range(start_row,self.num_rows) if M[r, col]]
             # if there are no rows with a nonzero entry in col, move on
             if not pivot_rows:
                 continue
             # take the first pivot row
             pivot_row = pivot_rows.pop(0)
             # if row has nonzero entry in col add pivot row to make zero (working mod2)
-            for row in range(num_rows):
+            for row in range(self.num_rows):
                 if row != pivot_row and M[row,col]:
                     M[[row], :] ^= M[[pivot_row], :]
             # swap pivot row with the next available row
