@@ -1,4 +1,5 @@
 import numpy as np
+
 from functools import cached_property
 from itertools import product
 from numpy.typing import NDArray
@@ -204,7 +205,6 @@ if __name__ == "__main__":
     import random
 
     class BMExample:
-        """
         def __init__(self,
                      rows: list[list[int]]):
             self.bm = BinaryMatrix(rows)
